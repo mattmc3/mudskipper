@@ -1,6 +1,8 @@
-﻿namespace Mudskipper;
+﻿using System;
 
-public class Program
+namespace Mudskipper;
+
+public class CountCommand
 {
     public static void Main(string[] args)
     {
