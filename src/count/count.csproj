@@ -6,7 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
+    <PublishDir>$(MSBuildThisFileDirectory)..\..\publish\count\$(Configuration)\</PublishDir>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <StripSymbols>true</StripSymbols>
+    <SelfContained>true</SelfContained>
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
 </Project>

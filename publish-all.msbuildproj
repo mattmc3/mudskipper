@@ -1,0 +1,27 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration>Release</Configuration>
+    <OutputDir>$(MSBuildThisFileDirectory)publish\bin\</OutputDir>
+  </PropertyGroup>
+
+  <Target Name="PublishAll">
+    <!-- Publish count -->
+    <MSBuild Projects="src/count/count.csproj"
+             Targets="Publish"
+             Properties="Configuration=$(Configuration)" />
+    <!-- Publish random -->
+    <MSBuild Projects="src/random/random.csproj"
+             Targets="Publish"
+             Properties="Configuration=$(Configuration)" />
+
+    <!-- Copy executables from both publish folders to publish/bin -->
+    <ItemGroup>
+      <PublishedExecutables Include="$(MSBuildThisFileDirectory)publish\count\$(Configuration)\*.exe" />
+      <PublishedExecutables Include="$(MSBuildThisFileDirectory)publish\count\$(Configuration)\*" Exclude="*.dll;*.pdb;*.json;*.xml;*.so;*.dylib;*.a;*.lib;*.config;*.deps*;*.runtimeconfig*;*.map;*.sh;*.bat;*.ps1;*.txt;*.md;*.html;*.js;*.css;*.exe" />
+      <PublishedExecutables Include="$(MSBuildThisFileDirectory)publish\random\$(Configuration)\*.exe" />
+      <PublishedExecutables Include="$(MSBuildThisFileDirectory)publish\random\$(Configuration)\*" Exclude="*.dll;*.pdb;*.json;*.xml;*.so;*.dylib;*.a;*.lib;*.config;*.deps*;*.runtimeconfig*;*.map;*.sh;*.bat;*.ps1;*.txt;*.md;*.html;*.js;*.css;*.exe" />
+    </ItemGroup>
+    <MakeDir Directories="$(OutputDir)" />
+    <Copy SourceFiles="@(PublishedExecutables)" DestinationFolder="$(OutputDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
