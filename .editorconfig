@@ -13,14 +13,6 @@ indent_style = space
 [*.{sh,bash}]
 indent_size = 2
 
-# JavaScript
-[*.{js,json}]
-indent_size = 2
-
-# YAML
-[*.{yml,yaml}]
-indent_size = 2
-
 # C# project
 [*.csproj]
 indent_size = 2
