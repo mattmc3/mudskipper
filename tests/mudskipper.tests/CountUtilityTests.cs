@@ -10,14 +10,6 @@ namespace Mudskipper.Tests;
 [DoNotParallelize] // Disable parallel execution
 public sealed class CountUtilityTests
 {
-    [TestInitialize]
-    public void TestInitialize()
-    {
-        // Ensure console output is clean before each test
-        Console.SetOut(new StreamWriter(Stream.Null) { AutoFlush = true });
-        Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
-    }
-
     [TestMethod]
     public void Main_NoArguments_OutputsZero()
     {
@@ -50,27 +42,18 @@ public sealed class CountUtilityTests
 
     private string CaptureConsoleOutput(Action action)
     {
-        // Setup
-        var originalOutput = Console.Out;
-
         // Create a clean string writer for each test
+        var originalOutput = Console.Out;
         using var stringWriter = new StringWriter(new StringBuilder());
         Console.SetOut(stringWriter);
 
         try
         {
-            // Clear any previous output
-            stringWriter.GetStringBuilder().Clear();
-
-            // Execute the action
             action();
-
-            // Get the output
-            return stringWriter.ToString().Trim();
+            return stringWriter.ToString();
         }
         finally
         {
-            // Always restore the original console
             Console.SetOut(originalOutput);
         }
     }
