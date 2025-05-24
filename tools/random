@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-local posix = require "posix"
+local posix = require("posix")
 
 local function random(args)
 	local min, max
@@ -12,11 +12,11 @@ local function random(args)
 	elseif #args == 2 then
 		min, max = tonumber(args[1]), tonumber(args[2])
 	else
-		error({errmsg = "random: Too many arguments", errcode = 1})
+		error({ errmsg = "random: Too many arguments", errcode = 1 })
 	end
 
 	if not min or not max then
-		error({errmsg = "random: Arguments must be numbers", errcode = 1})
+		error({ errmsg = "random: Arguments must be numbers", errcode = 1 })
 	end
 
 	if min > max then
@@ -37,7 +37,7 @@ if debug.getinfo(1, "S").short_src == arg[0] then
 	print(string.format("seed: %s", seed))
 	math.randomseed(seed + pid)
 
-	local ok, result = pcall(random, {...})
+	local ok, result = pcall(random, { ... })
 	if not ok then
 		io.stderr:write(result.errmsg .. "\n")
 		os.exit(2)

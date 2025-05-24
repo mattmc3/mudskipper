@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-local posix = require "posix"
+local posix = require("posix")
 
 local function count(args)
 	local n = args and #args or 0
@@ -8,7 +8,7 @@ local function count(args)
 end
 
 if debug.getinfo(1, "S").short_src == arg[0] then
-	local n = count({...})
+	local n = count({ ... })
 	-- Use luaposix to check if stdin is a tty
 	if not posix.isatty(posix.fileno(io.stdin)) then
 		for _ in io.lines() do

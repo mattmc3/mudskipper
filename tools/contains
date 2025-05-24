@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-local posix = require "posix"
+local posix = require("posix")
 
 local function contains(args)
 	local index_flag = false
@@ -18,7 +18,7 @@ local function contains(args)
 	end
 
 	if not needle then
-		error({errmsg = "contains: Key not specified", errcode = 2})
+		error({ errmsg = "contains: Key not specified", errcode = 2 })
 	end
 
 	for i = start, #args do
@@ -35,7 +35,7 @@ end
 
 -- Run command if run as a script
 if debug.getinfo(1, "S").short_src == arg[0] then
-	local ok, result = pcall(contains, {...})
+	local ok, result = pcall(contains, { ... })
 	if not ok then
 		io.stderr:write(result.errmsg .. "\n")
 		os.exit(result.errcode)
