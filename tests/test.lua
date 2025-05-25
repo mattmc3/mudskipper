@@ -2,22 +2,44 @@
 
 local posix = require("posix")
 
-local script_dir = debug.getinfo(1, "S").source:match("@(.*/)")
--- local argparse = dofile(script_dir .. "argparse")
--- local parsed = argparse({"h/help", "n/name=", "--", "-h", "--name", "foo", 'b"ar', "baz\"\nqux"})
--- -- print(parsed.flags.help)         -- true
--- -- print(parsed.flags.h)            -- true
--- -- print(parsed.flags.name)         -- "foo"
--- -- print(parsed.positionals[1])     -- "bar"
+local project_dir = debug.getinfo(1, "S").source:match("@(.*/)"):match("^(.-)/[^/]+/?$")
 
--- local cjson = require "cjson"
--- print(cjson.encode(parsed))
+-- Ensure project_dir exists and is a directory
+local stat = posix.stat(project_dir)
+if not stat or stat.type ~= "directory" then
+	io.stderr:write("Error: '" .. tostring(project_dir) .. "' does not exist or is not a directory.\n")
+	os.exit(1)
+end
+print(project_dir)
 
--- local count = dofile(script_dir .. "count")
--- local result = count({"foo", "bar", "baz"})
--- print(result)
--- local result = count()
--- print(result)
+-- Returns the command name of the parent process (the shell)
+local function detect_shell()
+	local ppid = posix.getppid()
+	local stat = posix.sys.stat
+	local shell_name = nil
+
+	-- Try /proc (Linux)
+	local proc_comm = "/proc/" .. tostring(ppid) .. "/comm"
+	local f = io.open(proc_comm)
+	if f then
+		shell_name = f:read("*l")
+		f:close()
+	else
+		-- Fallback: use 'ps' if /proc is not available (e.g., macOS)
+		local handle = io.popen("ps -p " .. ppid .. " -o comm=")
+		if handle then
+			shell_name = handle:read("*l")
+			handle:close()
+		end
+	end
+	return shell_name
+end
+
+-- Print shell
+local shell = detect_shell()
+if shell then
+	print("Parent shell: " .. shell)
+end
 
 local assert = {
 	passed = 0,
@@ -97,7 +119,7 @@ function assert.print_results()
 end
 
 -- Tests for contains
-local contains = dofile(script_dir .. "contains")
+local contains = dofile(project_dir .. "/tools/contains")
 assert.equals(contains({ "foo", "bar", "baz", "foo" }), true, "contains: finds value")
 assert.equals(contains({ "foo", "bar", "baz" }), false, "contains: does not find value")
 assert.equals(contains({ "-i", "foo", "bar", "baz", "foo" }), 3, "contains: index flag finds correct index")
@@ -107,19 +129,19 @@ assert.error(function()
 end, "contains: errors on missing key")
 
 -- Tests for count
-local count = dofile(script_dir .. "count")
+local count = dofile(project_dir .. "/tools/count")
 assert.equals(count({ "foo", "bar", "baz" }), 3, "count: counts three arguments")
 assert.equals(count({}), 0, "count: counts zero arguments")
 assert.equals(count(nil), 0, "count: handles nil as zero arguments")
-assert.command_output("printf '%s\n' foo bar | " .. script_dir .. "count", "2", "count: counts stdin lines")
+assert.command_output("printf '%s\n' foo bar | " .. project_dir .. "/tools/count", "2", "count: counts stdin lines")
 assert.command_output(
-	"printf '%s\n' x y z | " .. script_dir .. "count a b c",
+	"printf '%s\n' x y z | " .. project_dir .. "/tools/count a b c",
 	"6",
 	"count: counts args and stdin lines"
 )
 
 -- Tests for random
-local random = dofile(script_dir .. "random")
+local random = dofile(project_dir .. "/tools/random")
 math.randomseed(42)
 local val = random({})
 assert.equals(type(val), "number", "random: returns a number")
@@ -148,7 +170,7 @@ end
 assert.tables_equal(results1, results2, "random: repeatable results with same seed")
 
 -- Tests for math_command
-local math_command = dofile(script_dir .. "math")
+local math_command = dofile(project_dir .. "/tools/math")
 assert.equals(math_command({ "abs", -42 }), 42, "math_command: abs -42 is 42")
 assert.equals(math_command({ "abs", 0 }), 0, "math_command: abs 0 is 0")
 assert.equals(math_command({ "max", 1, 5, 3 }), 5, "math_command: max 1 5 3 is 5")
@@ -203,32 +225,3 @@ assert.equals(math_command({ "round", -1.7 }), -2, "math_command: round -1.7 is 
 
 -- Print test results
 assert.print_results()
-
--- Returns the command name of the parent process (the shell)
-local function detect_shell()
-	local ppid = posix.getppid()
-	local stat = posix.sys.stat
-	local shell_name = nil
-
-	-- Try /proc (Linux)
-	local proc_comm = "/proc/" .. tostring(ppid) .. "/comm"
-	local f = io.open(proc_comm)
-	if f then
-		shell_name = f:read("*l")
-		f:close()
-	else
-		-- Fallback: use 'ps' if /proc is not available (e.g., macOS)
-		local handle = io.popen("ps -p " .. ppid .. " -o comm=")
-		if handle then
-			shell_name = handle:read("*l")
-			handle:close()
-		end
-	end
-	return shell_name
-end
-
--- Example usage:
-local shell = detect_shell()
-if shell then
-	print("Parent shell: " .. shell)
-end
