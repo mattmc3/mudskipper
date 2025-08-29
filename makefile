@@ -7,4 +7,9 @@ pretty:
 
 .PHONY: test
 test:
-	./tests/test.lua .
+	nimble test tests/test_contains.nim
+
+.PHONY: build
+build:
+	mkdir -p bin
+	nim c -d:release -o:bin/contains src/contains.nim
