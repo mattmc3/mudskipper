@@ -9,6 +9,7 @@ Usage: contains [-i|--index|-0|--index0] NEEDLE HAYSTACK...
 Returns 0 if NEEDLE is found, 1 otherwise.
 """
 
+# Rewritten to avoid slicing / allocations and to early-exit
 proc contains*(args: seq[string]): int =
   if args.len == 0 or args[0] == "-h" or args[0] == "--help":
     printHelp()
@@ -16,33 +17,32 @@ proc contains*(args: seq[string]): int =
 
   var indexFlag = false
   var indexStart = 1
-  var remainingArgs = args
+  var start = 0
 
-  # Shift off flag if present
-  if remainingArgs.len > 0 and (remainingArgs[0] == "-i" or remainingArgs[0] == "--index"):
+  if args.len > 0 and (args[0] == "-i" or args[0] == "--index"):
     indexFlag = true
     indexStart = 1
-    remainingArgs = remainingArgs[1..^1]
-  elif remainingArgs.len > 0 and (remainingArgs[0] == "-0" or remainingArgs[0] == "--index0"):
+    start = 1
+  elif args.len > 0 and (args[0] == "-0" or args[0] == "--index0"):
     indexFlag = true
     indexStart = 0
-    remainingArgs = remainingArgs[1..^1]
+    start = 1
 
-  if remainingArgs.len < 1:
-    echo "contains: Key not specified"
+  if args.len <= start:
+    stderr.write("contains: Key not specified\n")
     return 2
 
-  let needle = remainingArgs[0]
-  let haystack = remainingArgs[1..^1]
-
-  for i, item in haystack:
-    if item == needle:
+  let needle = args[start]
+  var i = start + 1          # position in full args
+  var rel = 0                # index within haystack list
+  while i < args.len:
+    if args[i] == needle:
       if indexFlag:
-        echo $(i + indexStart)
+        stdout.write($(rel + indexStart), "\n")
       return 0
-
+    inc i
+    inc rel
   return 1
 
 when isMainModule:
-  import os
   quit(contains(commandLineParams()))
