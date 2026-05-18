@@ -27,8 +27,13 @@ release version:
 install:
     go install .
 
+tidy:
+    go mod tidy
+
 format:
     gofmt -w .
 
 vet:
     go vet ./...
+
+lint: tidy format vet
