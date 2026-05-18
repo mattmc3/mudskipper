@@ -45,13 +45,17 @@ Options:
 	}
 
 	changed := false
-	for _, s := range inputStrings(fs.Args(), stdin) {
+	next := newStringIter(fs.Args(), stdin)
+	for s, ok := next(); ok; s, ok = next() {
 		result := transform(s)
 		if !*quiet {
 			fmt.Fprintln(stdout, result)
 		}
 		if result != s {
 			changed = true
+		}
+		if *quiet && changed {
+			return 0
 		}
 	}
 	if changed {

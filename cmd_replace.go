@@ -84,10 +84,9 @@ Options:
 		}
 	}
 
-	strs := inputStrings(rest[2:], stdin)
 	changed := false
-
-	for _, s := range strs {
+	next := newStringIter(rest[2:], stdin)
+	for s, ok := next(); ok; s, ok = next() {
 		var result string
 		if re != nil {
 			result = replaceRegexLimited(s, re, replacement, limit)
@@ -104,6 +103,9 @@ Options:
 			if !*quiet {
 				fmt.Fprintln(stdout, result)
 			}
+		}
+		if *quiet && changed {
+			return 0
 		}
 	}
 

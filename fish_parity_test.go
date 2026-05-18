@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 )
 
 // stringBin is the path to the compiled binary, set by TestMain.
@@ -522,6 +524,15 @@ var fishParityShorten = []cliTest{
 	{name: "max0_all_as_is", args: []string{"shorten", "-m0", "foo", "bar", "asodjsaoidj"}, wantExit: 0, wantOut: []string{"foo", "bar", "asodjsaoidj"}},
 }
 
+// fishParityQuietEarlyExit verifies --quiet exits 0 on first match without consuming all stdin.
+// Uses real infinite pipes so the test actually hangs if early-exit is broken.
+// L993-L1003: yes | string match -q y / string length -q / string replace -q y n
+var fishParityQuietEarlyExit = []struct{ name string; args []string }{
+	{"match_q", []string{"match", "-q", "y"}},
+	{"length_q", []string{"length", "-q"}},
+	{"replace_q", []string{"replace", "-q", "y", "n"}},
+}
+
 func TestFishParity(t *testing.T) {
 	run := func(group string, tests []cliTest) {
 		t.Run(group, func(t *testing.T) {
@@ -545,4 +556,45 @@ func TestFishParity(t *testing.T) {
 	run("replace", fishParityReplace)
 	run("repeat", fishParityRepeat)
 	run("shorten", fishParityShorten)
+}
+
+// TestQuietEarlyExit uses real infinite pipes to prove --quiet exits without consuming all stdin.
+// If early-exit is broken, each sub-test hangs until the 2s timeout kills it and fails.
+func TestQuietEarlyExit(t *testing.T) {
+	for _, tc := range fishParityQuietEarlyExit {
+		t.Run(tc.name, func(t *testing.T) {
+			pr, pw := io.Pipe()
+			go func() {
+				for {
+					if _, err := pw.Write([]byte("y\n")); err != nil {
+						return
+					}
+				}
+			}()
+
+			cmd := exec.Command(stringBin, tc.args...)
+			cmd.Stdin = pr
+
+			done := make(chan error, 1)
+			go func() { done <- cmd.Run() }()
+
+			select {
+			case err := <-done:
+				pr.Close()
+				pw.Close()
+				if ee, ok := err.(*exec.ExitError); ok {
+					if ee.ExitCode() != 0 {
+						t.Errorf("exit: want 0, got %d", ee.ExitCode())
+					}
+				} else if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+			case <-time.After(2 * time.Second):
+				cmd.Process.Kill()
+				pr.Close()
+				pw.Close()
+				t.Error("command hung reading infinite stdin; --quiet early-exit broken")
+			}
+		})
+	}
 }

@@ -99,7 +99,8 @@ Options:
 	matched := false
 	total := 0
 
-	for _, s := range inputStrings(rest[1:], stdin) {
+	next := newStringIter(rest[1:], stdin)
+	for s, ok := next(); ok; s, ok = next() {
 		if limit >= 0 && total >= limit {
 			break
 		}
@@ -114,6 +115,9 @@ Options:
 					} else {
 						fmt.Fprintln(stdout, s)
 					}
+				}
+				if *quiet {
+					return 0
 				}
 			}
 			continue
@@ -136,6 +140,9 @@ Options:
 					total++
 				}
 			}
+		}
+		if *quiet && matched {
+			return 0
 		}
 	}
 

@@ -45,7 +45,8 @@ Options:
 	}
 
 	changed := false
-	for _, s := range inputStrings(fs.Args(), stdin) {
+	next := newStringIter(fs.Args(), stdin)
+	for s, ok := next(); ok; s, ok = next() {
 		var result string
 		if *chars == "" {
 			result = trimWhitespace(s, *left, *right)
@@ -57,6 +58,9 @@ Options:
 		}
 		if len(result) < len(s) {
 			changed = true
+		}
+		if *quiet && changed {
+			return 0
 		}
 	}
 	if changed {

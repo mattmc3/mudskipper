@@ -34,7 +34,8 @@ Options:
 	}
 
 	any := false
-	for _, s := range inputStrings(fs.Args(), stdin) {
+	next := newStringIter(fs.Args(), stdin)
+	for s, ok := next(); ok; s, ok = next() {
 		if *visible {
 			for _, w := range visualWidthOfLines(s) {
 				if w > 0 {
@@ -52,6 +53,9 @@ Options:
 			if !*quiet {
 				fmt.Fprintln(stdout, n)
 			}
+		}
+		if *quiet && any {
+			return 0
 		}
 	}
 	if any {

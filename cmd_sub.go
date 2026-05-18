@@ -87,13 +87,17 @@ Options:
 	}
 
 	any := false
-	for _, s := range inputStrings(fs.Args(), stdin) {
+	next := newStringIter(fs.Args(), stdin)
+	for s, ok := next(); ok; s, ok = next() {
 		result := substring(s, start, end, length)
 		if len(result) > 0 {
 			any = true
 		}
 		if !*quiet {
 			fmt.Fprintln(stdout, result)
+		}
+		if *quiet && any {
+			return 0
 		}
 	}
 
