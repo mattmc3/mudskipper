@@ -11,8 +11,9 @@ const version = "0.0.1"
 
 func main() {
 	bw := bufio.NewWriter(os.Stdout)
-	defer bw.Flush()
-	os.Exit(run(os.Args[1:], os.Stdin, bw, os.Stderr))
+	code := run(os.Args[1:], os.Stdin, bw, os.Stderr)
+	bw.Flush()
+	os.Exit(code)
 }
 
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
