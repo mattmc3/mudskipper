@@ -61,6 +61,10 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runJoin(rest, stdin, stdout, stderr)
 	case "join0":
 		return runJoin0(rest, stdin, stdout, stderr)
+	case "escape":
+		return runEscape(rest, stdin, stdout, stderr)
+	case "unescape":
+		return runUnescape(rest, stdin, stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "string %s: invalid subcommand\n", cmd)
 		return 1
