@@ -8,9 +8,14 @@ import (
 
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	n := len(args)
-	if n == 0 {
-		scanner := bufio.NewScanner(stdin)
-		for scanner.Scan() {
+	// Always count newlines from stdin (like wc -l), added to arg count.
+	r := bufio.NewReader(stdin)
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			break
+		}
+		if b == '\n' {
 			n++
 		}
 	}
