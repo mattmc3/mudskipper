@@ -1,6 +1,5 @@
-# Binaries
-/string
-/out/
+# Build output
+/dist/
 
 # Test artifacts
 *.test

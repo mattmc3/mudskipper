@@ -2,10 +2,11 @@ default:
     @just --list
 
 build:
-    go build -o string ./cmd/string
-    go build -o count ./cmd/count
-    go build -o contains ./cmd/contains
-    go build -o path ./cmd/path
+    mkdir -p dist
+    go build -o dist/string ./cmd/string
+    go build -o dist/count ./cmd/count
+    go build -o dist/contains ./cmd/contains
+    go build -o dist/path ./cmd/path
 
 run cmd *ARGS:
     go run ./cmd/{{cmd}} {{ARGS}}
@@ -14,11 +15,11 @@ test *ARGS:
     go test ./... {{ARGS}}
 
 clean:
-    rm -f string count contains
+    rm -rf dist
     rm -f coverage.out coverage.html
 
 release version:
-    #!/usr/bin/env bash
+    #!/usr/dist/env bash
     set -euo pipefail
     if [[ ! "{{version}}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         echo "Error: version must be X.Y.Z (got '{{version}}')"
