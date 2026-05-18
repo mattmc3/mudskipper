@@ -53,6 +53,10 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runShorten(rest, stdin, stdout, stderr)
 	case "replace":
 		return runReplace(rest, stdin, stdout, stderr)
+	case "split":
+		return runSplit(rest, stdin, stdout, stderr)
+	case "split0":
+		return runSplit0(rest, stdin, stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "string %s: invalid subcommand\n", cmd)
 		return 1
