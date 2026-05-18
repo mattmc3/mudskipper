@@ -1,0 +1,64 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"io"
+
+	"rsc.io/getopt"
+)
+
+func runLength(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	fs := getopt.NewFlagSet("length", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	help := fs.Bool("help", false, "")
+	quiet := fs.Bool("quiet", false, "")
+	visible := fs.Bool("visible", false, "")
+	fs.Aliases("h", "help", "q", "quiet", "V", "visible")
+
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(stderr, "error: length: %v\n", err)
+		return 1
+	}
+	if *help {
+		writeLengthHelp(stdout)
+		return 0
+	}
+
+	any := false
+	for _, s := range inputStrings(fs.Args(), stdin) {
+		if *visible {
+			for _, w := range visualWidthOfLines(s) {
+				if w > 0 {
+					any = true
+				}
+				if !*quiet {
+					fmt.Fprintln(stdout, w)
+				}
+			}
+		} else {
+			n := len(s)
+			if n > 0 {
+				any = true
+			}
+			if !*quiet {
+				fmt.Fprintln(stdout, n)
+			}
+		}
+	}
+	if any {
+		return 0
+	}
+	return 1
+}
+
+func writeLengthHelp(w io.Writer) {
+	fmt.Fprintln(w, "Usage: string length [-h] [-q] [-V] [STRING ...]")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "  Print the length of each STRING.")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Options:")
+	fmt.Fprintln(w, "  -V, --visible    Count visible width (strip ANSI escape sequences)")
+	fmt.Fprintln(w, "  -q, --quiet      Suppress output; exit 0 if any non-empty, 1 if all empty")
+	fmt.Fprintln(w, "  -h, --help       Show this help message")
+}

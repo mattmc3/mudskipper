@@ -52,3 +52,30 @@ func assertContains(t *testing.T, substr, s string) {
 		t.Errorf("expected %q to contain %q", s, substr)
 	}
 }
+
+func assertEqual(t *testing.T, want, got int) {
+	t.Helper()
+	if got != want {
+		t.Errorf("want %d, got %d", want, got)
+	}
+}
+
+func assertInts(t *testing.T, want, got []int) {
+	t.Helper()
+	if len(want) != len(got) {
+		t.Errorf("want %v, got %v", want, got)
+		return
+	}
+	for i := range want {
+		if want[i] != got[i] {
+			t.Errorf("[%d]: want %d, got %d", i, want[i], got[i])
+		}
+	}
+}
+
+func assertStr(t *testing.T, want, got string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("want %q, got %q", want, got)
+	}
+}

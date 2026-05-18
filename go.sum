@@ -1,2 +1,6 @@
+github.com/clipperhouse/uax29/v2 v2.2.0 h1:ChwIKnQN3kcZteTXMgb1wztSgaU+ZemkgWdohwgs8tY=
+github.com/clipperhouse/uax29/v2 v2.2.0/go.mod h1:EFJ2TJMRUaplDxHKj1qAEhCtQPW2tJSwu5BF98AuoVM=
+github.com/mattn/go-runewidth v0.0.23 h1:7ykA0T0jkPpzSvMS5i9uoNn2Xy3R383f9HDx3RybWcw=
+github.com/mattn/go-runewidth v0.0.23/go.mod h1:XBkDxAl56ILZc9knddidhrOlY5R/pDhgLpndooCuJAs=
 rsc.io/getopt v0.0.0-20170811000552-20be20937449 h1:UukjJOsjQH0DIuyyrcod6CXHS6cdaMMuJmrt+SN1j4A=
 rsc.io/getopt v0.0.0-20170811000552-20be20937449/go.mod h1:dhCdeqAxkyt5u3/sKRkUXuHaMXUu1Pt13GTQAM2xnig=
