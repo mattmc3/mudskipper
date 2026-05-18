@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	countcmd "github.com/mattmc3/string/internal/count"
+	countcmd "github.com/mattmc3/mudskipper/internal/count"
 )
 
 func main() {

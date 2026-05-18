@@ -1,4 +1,4 @@
-module github.com/mattmc3/string
+module github.com/mattmc3/mudskipper
 
 go 1.24
 

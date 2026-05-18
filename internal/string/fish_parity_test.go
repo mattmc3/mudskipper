@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	stringBin = tmp.Name()
 	defer os.Remove(stringBin)
 
-	if out, err := exec.Command("go", "build", "-o", stringBin, "github.com/mattmc3/string/cmd/string").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "build", "-o", stringBin, "github.com/mattmc3/mudskipper/cmd/string").CombinedOutput(); err != nil {
 		panic("build failed: " + string(out))
 	}
 

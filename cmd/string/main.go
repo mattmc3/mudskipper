@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"os"
 
-	stringcmd "github.com/mattmc3/string/internal/string"
+	stringcmd "github.com/mattmc3/mudskipper/internal/string"
 )
 
 func main() {

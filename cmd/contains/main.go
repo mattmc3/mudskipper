@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	containscmd "github.com/mattmc3/string/internal/contains"
+	containscmd "github.com/mattmc3/mudskipper/internal/contains"
 )
 
 func main() {
