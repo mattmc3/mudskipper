@@ -37,6 +37,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runLower(rest, stdin, stdout, stderr)
 	case "length":
 		return runLength(rest, stdin, stdout, stderr)
+	case "trim":
+		return runTrim(rest, stdin, stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "string %s: invalid subcommand\n", cmd)
 		return 1

@@ -1,0 +1,96 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"io"
+	"strings"
+	"unicode"
+
+	"rsc.io/getopt"
+)
+
+func runTrim(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	fs := getopt.NewFlagSet("trim", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	help := fs.Bool("help", false, "")
+	left := fs.Bool("left", false, "")
+	right := fs.Bool("right", false, "")
+	quiet := fs.Bool("quiet", false, "")
+	chars := fs.String("chars", "", "")
+	fs.Aliases("h", "help", "l", "left", "r", "right", "q", "quiet", "c", "chars")
+
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(stderr, "error: trim: %v\n", err)
+		return 1
+	}
+	if *help {
+		writeTrimHelp(stdout)
+		return 0
+	}
+
+	if !*left && !*right {
+		*left = true
+		*right = true
+	}
+
+	changed := false
+	for _, s := range inputStrings(fs.Args(), stdin) {
+		var result string
+		if *chars == "" {
+			result = trimWhitespace(s, *left, *right)
+		} else {
+			result = trimChars(s, *left, *right, *chars)
+		}
+		if !*quiet {
+			fmt.Fprintln(stdout, result)
+		}
+		if len(result) < len(s) {
+			changed = true
+		}
+	}
+	if changed {
+		return 0
+	}
+	return 1
+}
+
+func trimWhitespace(s string, left, right bool) string {
+	switch {
+	case left && right:
+		return strings.TrimFunc(s, unicode.IsSpace)
+	case left:
+		return strings.TrimLeftFunc(s, unicode.IsSpace)
+	case right:
+		return strings.TrimRightFunc(s, unicode.IsSpace)
+	default:
+		return s
+	}
+}
+
+func trimChars(s string, left, right bool, chars string) string {
+	cutset := chars
+	switch {
+	case left && right:
+		return strings.Trim(s, cutset)
+	case left:
+		return strings.TrimLeft(s, cutset)
+	case right:
+		return strings.TrimRight(s, cutset)
+	default:
+		return s
+	}
+}
+
+func writeTrimHelp(w io.Writer) {
+	fmt.Fprintln(w, "Usage: string trim [-h] [-l] [-r] [-q] [-c CHARS] [STRING ...]")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "  Remove leading and trailing whitespace from STRING.")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Options:")
+	fmt.Fprintln(w, "  -l, --left          Trim leading whitespace only")
+	fmt.Fprintln(w, "  -r, --right         Trim trailing whitespace only")
+	fmt.Fprintln(w, "  -c, --chars CHARS   Trim CHARS instead of whitespace")
+	fmt.Fprintln(w, "  -q, --quiet         Suppress output; exit 0 if any string trimmed, 1 if none")
+	fmt.Fprintln(w, "  -h, --help          Show this help message")
+}
