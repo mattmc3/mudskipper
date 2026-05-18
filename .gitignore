@@ -16,4 +16,5 @@ coverage.html
 .history/
 *.code-workspace
 
-reference/
+# ignore dotdirs
+.*/
