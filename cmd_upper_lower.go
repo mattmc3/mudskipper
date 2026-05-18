@@ -1,9 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"strings"
+
+	"rsc.io/getopt"
 )
 
 func runUpper(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
@@ -15,32 +18,25 @@ func runLower(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 }
 
 func runTransform(name string, args []string, stdin io.Reader, stdout, stderr io.Writer, transform func(string) string) int {
-	var quiet bool
-	var inputs []string
+	fs := getopt.NewFlagSet(name, flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	help := fs.Bool("help", false, "")
+	quiet := fs.Bool("quiet", false, "")
+	fs.Aliases("h", "help", "q", "quiet")
 
-	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case "-h", "--help":
-			writeTransformHelp(name, stdout)
-			return 0
-		case "-q", "--quiet":
-			quiet = true
-		case "--":
-			inputs = append(inputs, args[i+1:]...)
-			i = len(args)
-		default:
-			if strings.HasPrefix(args[i], "-") {
-				fmt.Fprintf(stderr, "error: %s: unknown option '%s'\n", name, args[i])
-				return 1
-			}
-			inputs = append(inputs, args[i])
-		}
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(stderr, "error: %s: %v\n", name, err)
+		return 1
+	}
+	if *help {
+		writeTransformHelp(name, stdout)
+		return 0
 	}
 
 	changed := false
-	for _, s := range inputStrings(inputs, stdin) {
+	for _, s := range inputStrings(fs.Args(), stdin) {
 		result := transform(s)
-		if !quiet {
+		if !*quiet {
 			fmt.Fprintln(stdout, result)
 		}
 		if result != s {
