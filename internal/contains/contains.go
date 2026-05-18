@@ -7,7 +7,7 @@ import (
 
 func Run(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "contains: missing value")
+		fmt.Fprintln(stderr, "contains: Key not specified")
 		return 1
 	}
 
@@ -16,15 +16,16 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		printIndex = true
 		args = args[1:]
 		if len(args) == 0 {
-			fmt.Fprintln(stderr, "contains: missing value")
+			fmt.Fprintln(stderr, "contains: Key not specified")
 			return 1
 		}
 	}
 
+	// -- allows searching for values that look like flags (e.g. contains -- -- a b --)
 	if args[0] == "--" {
 		args = args[1:]
 		if len(args) == 0 {
-			fmt.Fprintln(stderr, "contains: missing value")
+			fmt.Fprintln(stderr, "contains: Key not specified")
 			return 1
 		}
 	}

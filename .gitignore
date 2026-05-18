@@ -15,3 +15,5 @@ coverage.html
 !.vscode/extensions.json
 .history/
 *.code-workspace
+
+reference/
