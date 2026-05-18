@@ -38,3 +38,40 @@ func TestCollect_help_shows_usage(t *testing.T) {
 	assertExit(t, 0, exit)
 	assertContains(t, "Usage:", stdout)
 }
+
+// Fish parity tests
+
+func TestCollect_no_args_returns_1(t *testing.T) {
+	exit, _, _ := runCmd("collect")
+	assertExit(t, 1, exit)
+}
+
+func TestCollect_single_arg_returns_0(t *testing.T) {
+	exit, _, _ := runCmd("collect", "a")
+	assertExit(t, 0, exit)
+}
+
+func TestCollect_no_trim_empty_string_returns_1(t *testing.T) {
+	exit, _, _ := runCmd("collect", "-N", "")
+	assertExit(t, 1, exit)
+}
+
+func TestCollect_only_newlines_returns_1(t *testing.T) {
+	exit, _, _ := runCmd("collect", "\n\n")
+	assertExit(t, 1, exit)
+}
+
+func TestCollect_N_with_stdin_newline_returns_0(t *testing.T) {
+	exit, _, _ := runWithStdin("\n", "collect", "-N")
+	assertExit(t, 0, exit)
+}
+
+func TestCollect_trim_stdin_only_newline_returns_1(t *testing.T) {
+	exit, _, _ := runWithStdin("\n", "collect")
+	assertExit(t, 1, exit)
+}
+
+func TestCollect_allow_empty_no_args_returns_0(t *testing.T) {
+	exit, _, _ := runCmd("collect", "--allow-empty")
+	assertExit(t, 0, exit)
+}

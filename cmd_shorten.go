@@ -16,7 +16,7 @@ func runShorten(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	quiet := fs.Bool("quiet", false, "")
 	noNewline := fs.Bool("no-newline", false, "")
 	left := fs.Bool("left", false, "")
-	charStr := fs.String("char", "", "")
+	charStr := fs.String("char", "…", "")
 	maxStr := fs.String("max", "", "")
 	fs.Aliases("h", "help", "q", "quiet", "N", "no-newline", "l", "left", "c", "char", "m", "max")
 	if err := fs.Parse(args); err != nil {
@@ -39,10 +39,7 @@ Options:
 		return 0
 	}
 
-	ellipsis := "…"
-	if *charStr != "" {
-		ellipsis = *charStr
-	}
+	ellipsis := *charStr
 
 	maxWidth := -1
 	maxSet := false

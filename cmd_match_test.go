@@ -299,3 +299,127 @@ func TestMatch_entire_quiet_returns_0(t *testing.T) {
 	assertExit(t, 0, exit)
 	assertEmpty(t, stdout)
 }
+
+func TestMatch_glob_star_matches_any(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "*", "a")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"a"}, lines(stdout))
+}
+
+func TestMatch_glob_with_wildcard(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "a*b", "axxb")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"axxb"}, lines(stdout))
+}
+
+func TestMatch_glob_case_insensitive(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "-i", "a**B", "Axxb")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"Axxb"}, lines(stdout))
+}
+
+func TestMatch_glob_question_mark(t *testing.T) {
+	exit, stdout, _ := runWithStdin("ok?\n", "match", "*?")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"ok?"}, lines(stdout))
+}
+
+func TestMatch_entire_contains_substring(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "-e", "x", "abc", "dxf", "xyz", "jkx", "x", "z")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"dxf", "xyz", "jkx", "x"}, lines(stdout))
+}
+
+func TestMatch_glob_exact_only(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "x", "abc", "dxf", "xyz", "jkx", "x", "z")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"x"}, lines(stdout))
+}
+
+func TestMatch_entire_regex_with_capture_groups(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "--entire", "-r", "a*b([xy]+)", "abc", "abxc", "bye", "aaabyz", "kaabxz", "abbxy", "abcx", "caabxyxz")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abxc", "x", "bye", "y", "aaabyz", "y", "kaabxz", "x", "abbxy", "xy", "caabxyxz", "xyx"}, lines(stdout))
+}
+
+func TestMatch_regex_with_capture_groups_output(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "-r", "a*b([xy]+)", "abc", "abxc", "bye", "aaabyz", "kaabxz", "abbxy", "abcx", "caabxyxz")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abx", "x", "by", "y", "aaaby", "y", "aabx", "x", "bxy", "xy", "aabxyx", "xyx"}, lines(stdout))
+}
+
+func TestMatch_entire_regex_returns_full_string(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "--entire", "-r", "a*b[xy]+", "abc", "abxc", "bye", "aaabyz", "kaabxz", "abbxy", "abcx", "caabxyxz")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abxc", "bye", "aaabyz", "kaabxz", "abbxy", "caabxyxz"}, lines(stdout))
+}
+
+func TestMatch_regex_returns_matched_portion(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "-r", "a*b[xy]+", "abc", "abxc", "bye", "aaabyz", "kaabxz", "abbxy", "abcx", "caabxyxz")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abx", "by", "aaaby", "aabx", "bxy", "aabxyx"}, lines(stdout))
+}
+
+func TestMatch_entire_empty_pattern_matches_all(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "--entire", "", "banana")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"banana"}, lines(stdout))
+}
+
+func TestMatch_regex_all_with_index(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "-r", "-a", "-n", "at", "ratatat")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"2 2", "4 2", "6 2"}, lines(stdout))
+}
+
+func TestMatch_regex_case_insensitive_hex(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "-r", "-i", "0x[0-9a-f]{1,8}", "int magic = 0xBadC0de;")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"0xBadC0de"}, lines(stdout))
+}
+
+func TestMatch_regex_invert_all_match_returns_1(t *testing.T) {
+	exit, _, _ := runCmd("match", "-r", "-v", "[dcantg].*", "dog", "can", "cat", "diz")
+	assertExit(t, 1, exit)
+}
+
+func TestMatch_glob_invert_star_matches_all_returns_1(t *testing.T) {
+	exit, _, _ := runCmd("match", "-v", "*", "dog", "can", "cat", "diz")
+	assertExit(t, 1, exit)
+}
+
+func TestMatch_regex_invert_with_index(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "-r", "-v", "-n", "a", "bbb")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"1 3"}, lines(stdout))
+}
+
+func TestMatch_regex_empty_capture_groups(t *testing.T) {
+	exit, stdout, _ := runCmd("match", "-r", `^([ugoa]*)([=+-]?)([rwx]*)$`, "=r")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"=r", "", "=", "r"}, lines(stdout))
+}
+
+func TestMatch_regex_compile_error(t *testing.T) {
+	exit, _, stderr := runCmd("match", "-r", "[", "a[sd")
+	assertExit(t, 1, exit)
+	assertContains(t, "error:", stderr)
+}
+
+func TestMatch_utf_mode_regex_is_error(t *testing.T) {
+	exit, _, stderr := runCmd("match", "-r", "(*UTF).*", "aaa")
+	assertExit(t, 1, exit)
+	assertContains(t, "error:", stderr)
+}
+
+func TestMatch_unknown_option_is_error(t *testing.T) {
+	exit, _, stderr := runCmd("match", "--unknown-opt")
+	assertExit(t, 1, exit)
+	assertContains(t, "not defined", stderr)
+}
+
+func TestMatch_regex_with_equals_is_error(t *testing.T) {
+	exit, _, stderr := runCmd("match", "--regex=abc")
+	assertExit(t, 1, exit)
+	assertContains(t, "parse error", stderr)
+}

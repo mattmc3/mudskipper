@@ -81,3 +81,101 @@ func TestStdin_sub(t *testing.T) {
 	assertExit(t, 0, exit)
 	assertLines(t, []string{"hel", "wor"}, lines(stdout))
 }
+
+// Fish parity tests
+
+func TestSub_start_i64_min_clamps_to_beginning(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "--start", "-9223372036854775808", "abc")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abc"}, lines(stdout))
+}
+
+func TestSub_end_positive(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "--end=3", "abcde")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abc"}, lines(stdout))
+}
+
+func TestSub_start_clamps_to_beginning(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "-s", "-100", "-e", "-2", "abcde")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abc"}, lines(stdout))
+}
+
+func TestSub_start_zero_is_error(t *testing.T) {
+	exit, _, stderr := runCmd("sub", "--start=0", "abc")
+	assertExit(t, 1, exit)
+	assertContains(t, "Invalid start value '0'", stderr)
+}
+
+func TestSub_length_from_start(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "--length", "2", "abcde")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"ab"}, lines(stdout))
+}
+
+func TestSub_negative_start_positive_end(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "-s", "-5", "-e", "2", "abcde")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"ab"}, lines(stdout))
+}
+
+func TestSub_start_and_length_fish(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "-s", "2", "-l", "2", "abcde")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"bc"}, lines(stdout))
+}
+
+func TestSub_start_and_negative_end(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "--start=2", "--end=-2", "abcde")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"bc"}, lines(stdout))
+}
+
+func TestSub_negative_length_is_error(t *testing.T) {
+	exit, _, stderr := runCmd("sub", "--length=-1", "abcde")
+	assertExit(t, 1, exit)
+	assertContains(t, "Invalid length value '-1'", stderr)
+}
+
+func TestSub_negative_start_from_end(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "--start=-2", "abcde")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"de"}, lines(stdout))
+}
+
+func TestSub_end_negative(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "--end=-4", "abcde")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"a"}, lines(stdout))
+}
+
+func TestSub_end_zero_is_error(t *testing.T) {
+	exit, _, stderr := runCmd("sub", "--end=0", "abcde")
+	assertExit(t, 1, exit)
+	assertContains(t, "Invalid end value '0'", stderr)
+}
+
+func TestSub_negative_start_and_negative_end(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "-s", "-5", "-e", "-2", "abcdefgh")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"def"}, lines(stdout))
+}
+
+func TestSub_end_before_start_returns_empty(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "-s", "-50", "-e", "-100", "abcde")
+	assertExit(t, 1, exit)
+	assertLines(t, []string{""}, lines(stdout))
+}
+
+func TestSub_start_after_end_returns_empty(t *testing.T) {
+	exit, stdout, _ := runCmd("sub", "-s", "2", "-e", "-5", "abcde")
+	assertExit(t, 1, exit)
+	assertLines(t, []string{""}, lines(stdout))
+}
+
+func TestSub_end_and_length_together_is_error(t *testing.T) {
+	exit, _, stderr := runCmd("sub", "-s", "2", "-e", "-5", "-l", "3", "abcde")
+	assertExit(t, 1, exit)
+	assertContains(t, "--end and --length are mutually exclusive", stderr)
+}

@@ -75,3 +75,17 @@ func TestJoin0_help_shows_usage(t *testing.T) {
 	assertExit(t, 0, exit)
 	assertContains(t, "Usage:", stdout)
 }
+
+// Fish parity tests
+
+func TestJoin_seq_stdin_with_ellipsis(t *testing.T) {
+	exit, stdout, _ := runWithStdin("1\n2\n3\n", "join", "...")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"1...2...3"}, lines(stdout))
+}
+
+func TestJoin_no_args_is_error(t *testing.T) {
+	exit, _, stderr := runCmd("join")
+	assertExit(t, 1, exit)
+	assertContains(t, "join requires a separator", stderr)
+}

@@ -67,3 +67,27 @@ func TestStdin_args_take_priority_over_stdin(t *testing.T) {
 	assertExit(t, 0, exit)
 	assertLines(t, []string{"foo"}, lines(stdout))
 }
+
+// Fish parity tests
+
+func TestLower_mixed_case(t *testing.T) {
+	exit, stdout, _ := runCmd("lower", "abc", "DEF", "gHi")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abc", "def", "ghi"}, lines(stdout))
+}
+
+func TestLower_quiet_already_lowercase_returns_1(t *testing.T) {
+	exit, _, _ := runCmd("lower", "-q", "abc")
+	assertExit(t, 1, exit)
+}
+
+func TestUpper_mixed_case(t *testing.T) {
+	exit, stdout, _ := runCmd("upper", "abc", "DEF", "gHi")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"ABC", "DEF", "GHI"}, lines(stdout))
+}
+
+func TestUpper_quiet_already_uppercase_returns_1(t *testing.T) {
+	exit, _, _ := runCmd("upper", "-q", "ABC", "DEF")
+	assertExit(t, 1, exit)
+}

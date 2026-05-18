@@ -62,3 +62,17 @@ func TestStdin_trim_with_flag(t *testing.T) {
 	assertExit(t, 0, exit)
 	assertLines(t, []string{"foo  ", "bar  "}, lines(stdout))
 }
+
+// Fish parity tests
+
+func TestTrim_both_sides(t *testing.T) {
+	exit, stdout, _ := runCmd("trim", " abc  ")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"abc"}, lines(stdout))
+}
+
+func TestTrim_right_custom_chars(t *testing.T) {
+	exit, stdout, _ := runCmd("trim", "--right", "--chars=yz", "xyzzy", "zany")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"x", "zan"}, lines(stdout))
+}
