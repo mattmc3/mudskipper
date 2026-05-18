@@ -27,18 +27,19 @@ func runReplace(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprintln(stdout, "Usage: string replace [-h] [-a] [-f] [-i] [-r] [-q] [(-m | --max-matches) MAX] PATTERN REPLACEMENT [STRING ...]")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "  Replace PATTERN with REPLACEMENT in each STRING.")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "Options:")
-		fmt.Fprintln(stdout, "  -a, --all                Replace all occurrences (default: first only)")
-		fmt.Fprintln(stdout, "  -f, --filter             Only print strings where a replacement was made")
-		fmt.Fprintln(stdout, "  -i, --ignore-case        Case-insensitive matching")
-		fmt.Fprintln(stdout, "  -r, --regex              Treat PATTERN as a regular expression")
-		fmt.Fprintln(stdout, "  -m, --max-matches MAX    Maximum number of replacements per string")
-		fmt.Fprintln(stdout, "  -q, --quiet              Suppress output; exit 0 if any replacement, 1 if none")
-		fmt.Fprintln(stdout, "  -h, --help               Show this help message")
+		fmt.Fprint(stdout, `Usage: string replace [-h] [-a] [-f] [-i] [-r] [-q] [(-m | --max-matches) MAX] PATTERN REPLACEMENT [STRING ...]
+
+  Replace PATTERN with REPLACEMENT in each STRING.
+
+Options:
+  -a, --all                Replace all occurrences (default: first only)
+  -f, --filter             Only print strings where a replacement was made
+  -i, --ignore-case        Case-insensitive matching
+  -r, --regex              Treat PATTERN as a regular expression
+  -m, --max-matches MAX    Maximum number of replacements per string
+  -q, --quiet              Suppress output; exit 0 if any replacement, 1 if none
+  -h, --help               Show this help message
+`)
 		return 0
 	}
 
@@ -141,10 +142,13 @@ func replaceLiteral(s, pattern, replacement string, limit int, ignoreCase bool) 
 }
 
 func replaceRegexLimited(s string, re *regexp.Regexp, repl string, limit int) string {
+	if limit < 0 {
+		return re.ReplaceAllString(s, repl)
+	}
 	var sb strings.Builder
 	pos := 0
 	count := 0
-	for limit < 0 || count < limit {
+	for count < limit {
 		sub := s[pos:]
 		match := re.FindStringSubmatchIndex(sub)
 		if match == nil {

@@ -21,7 +21,15 @@ func runLength(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		writeLengthHelp(stdout)
+		fmt.Fprint(stdout, `Usage: string length [-h] [-q] [-V] [STRING ...]
+
+  Print the length of each STRING.
+
+Options:
+  -V, --visible    Count visible width (strip ANSI escape sequences)
+  -q, --quiet      Suppress output; exit 0 if any non-empty, 1 if all empty
+  -h, --help       Show this help message
+`)
 		return 0
 	}
 
@@ -50,15 +58,4 @@ func runLength(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 0
 	}
 	return 1
-}
-
-func writeLengthHelp(w io.Writer) {
-	fmt.Fprintln(w, "Usage: string length [-h] [-q] [-V] [STRING ...]")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "  Print the length of each STRING.")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Options:")
-	fmt.Fprintln(w, "  -V, --visible    Count visible width (strip ANSI escape sequences)")
-	fmt.Fprintln(w, "  -q, --quiet      Suppress output; exit 0 if any non-empty, 1 if all empty")
-	fmt.Fprintln(w, "  -h, --help       Show this help message")
 }

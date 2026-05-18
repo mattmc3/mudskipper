@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"rsc.io/getopt"
 )
@@ -25,16 +26,17 @@ func runPad(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprintln(stdout, "Usage: string pad [-h] [-r] [-C] [(-c | --char) CHAR] [(-w | --width) INTEGER] [STRING ...]")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "  Pad strings to a fixed width.")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "Options:")
-		fmt.Fprintln(stdout, "  -r, --right         Pad on the right (left-align)")
-		fmt.Fprintln(stdout, "  -C, --center        Center the string")
-		fmt.Fprintln(stdout, "  -c, --char CHAR     Character to use for padding (default: space)")
-		fmt.Fprintln(stdout, "  -w, --width INT     Target width (default: longest string)")
-		fmt.Fprintln(stdout, "  -h, --help          Show this help message")
+		fmt.Fprint(stdout, `Usage: string pad [-h] [-r] [-C] [(-c | --char) CHAR] [(-w | --width) INTEGER] [STRING ...]
+
+  Pad strings to a fixed width.
+
+Options:
+  -r, --right         Pad on the right (left-align)
+  -C, --center        Center the string
+  -c, --char CHAR     Character to use for padding (default: space)
+  -w, --width INT     Target width (default: longest string)
+  -h, --help          Show this help message
+`)
 		return 0
 	}
 
@@ -69,17 +71,17 @@ func runPad(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	targetWidth := width
 	for _, s := range strs {
-		if len([]rune(s)) > targetWidth {
-			targetWidth = len([]rune(s))
+		if n := utf8.RuneCountInString(s); n > targetWidth {
+			targetWidth = n
 		}
 	}
 	if targetWidth < 0 {
 		targetWidth = 0
 	}
 
+	pad := string(padChar)
 	for _, s := range strs {
-		sRunes := []rune(s)
-		sLen := len(sRunes)
+		sLen := utf8.RuneCountInString(s)
 		if sLen >= targetWidth {
 			fmt.Fprintln(stdout, s)
 			continue
@@ -94,11 +96,11 @@ func runPad(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				leftPad = (total + 1) / 2
 			}
 			rightPad = total - leftPad
-			result = strings.Repeat(string(padChar), leftPad) + s + strings.Repeat(string(padChar), rightPad)
+			result = strings.Repeat(pad, leftPad) + s + strings.Repeat(pad, rightPad)
 		} else if *right {
-			result = s + strings.Repeat(string(padChar), total)
+			result = s + strings.Repeat(pad, total)
 		} else {
-			result = strings.Repeat(string(padChar), total) + s
+			result = strings.Repeat(pad, total) + s
 		}
 		fmt.Fprintln(stdout, result)
 	}

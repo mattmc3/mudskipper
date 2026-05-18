@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"strconv"
 	"math"
+	"strconv"
 
 	"rsc.io/getopt"
 )
@@ -24,16 +24,17 @@ func runSub(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprintln(stdout, "Usage: string sub [-h] [(-s | --start) START] [(-e | --end) END] [(-l | --length) LENGTH] [-q] [STRING ...]")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "  Extract substrings from STRING.")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "Options:")
-		fmt.Fprintln(stdout, "  -s, --start INT      Start position (1-based; negative counts from end)")
-		fmt.Fprintln(stdout, "  -e, --end INT        End position, inclusive (1-based; negative counts from end)")
-		fmt.Fprintln(stdout, "  -l, --length INT     Length of substring (overrides --end)")
-		fmt.Fprintln(stdout, "  -q, --quiet          Suppress output; exit 0 if any result non-empty, 1 if all empty")
-		fmt.Fprintln(stdout, "  -h, --help           Show this help message")
+		fmt.Fprint(stdout, `Usage: string sub [-h] [(-s | --start) START] [(-e | --end) END] [(-l | --length) LENGTH] [-q] [STRING ...]
+
+  Extract substrings from STRING.
+
+Options:
+  -s, --start INT      Start position (1-based; negative counts from end)
+  -e, --end INT        End position, inclusive (1-based; negative counts from end)
+  -l, --length INT     Length of substring (overrides --end)
+  -q, --quiet          Suppress output; exit 0 if any result non-empty, 1 if all empty
+  -h, --help           Show this help message
+`)
 		return 0
 	}
 
@@ -103,13 +104,7 @@ func runSub(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 }
 
 func clampInt64(n int64) int {
-	if n > math.MaxInt32 {
-		return math.MaxInt32
-	}
-	if n < math.MinInt32 {
-		return math.MinInt32
-	}
-	return int(n)
+	return int(max(int64(math.MinInt32), min(int64(math.MaxInt32), n)))
 }
 
 func substring(s string, start, end, length *int) string {
@@ -119,16 +114,10 @@ func substring(s string, start, end, length *int) string {
 	if start != nil {
 		startIdx = subToIndex(*start, n)
 	}
-	startIdx = clampIdx(startIdx, 0, n)
+	startIdx = max(0, min(n, startIdx))
 
 	if length != nil {
-		take := *length
-		if take > n-startIdx {
-			take = n - startIdx
-		}
-		if take < 0 {
-			take = 0
-		}
+		take := max(0, min(*length, n-startIdx))
 		return s[startIdx : startIdx+take]
 	}
 
@@ -137,10 +126,10 @@ func substring(s string, start, end, length *int) string {
 		if *end >= 1 {
 			endIdx = *end
 		} else {
-			endIdx = clampIdx(n+*end, 0, n)
+			endIdx = max(0, min(n, n+*end))
 		}
 	}
-	endIdx = clampIdx(endIdx, 0, n)
+	endIdx = max(0, min(n, endIdx))
 
 	if endIdx <= startIdx {
 		return ""
@@ -155,15 +144,5 @@ func subToIndex(pos, length int) int {
 	} else {
 		idx = length + pos
 	}
-	return clampIdx(idx, 0, length)
-}
-
-func clampIdx(v, lo, hi int) int {
-	if v < lo {
-		return lo
-	}
-	if v > hi {
-		return hi
-	}
-	return v
+	return max(0, min(length, idx))
 }

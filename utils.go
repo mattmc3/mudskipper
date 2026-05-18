@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"io"
-	"strings"
 )
 
 func readLines(r io.Reader) []string {
@@ -20,10 +19,4 @@ func inputStrings(args []string, stdin io.Reader) []string {
 		return args
 	}
 	return readLines(stdin)
-}
-
-func splitLines(s string) []string {
-	s = strings.ReplaceAll(s, "\r\n", "\n")
-	s = strings.TrimRight(s, "\n")
-	return strings.Split(s, "\n")
 }

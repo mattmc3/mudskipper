@@ -24,17 +24,18 @@ func runShorten(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprintln(stdout, "Usage: string shorten [-h] [-l] [-N] [-q] [(-c | --char) CHARS] [(-m | --max) INTEGER] [STRING ...]")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "  Shorten strings to a maximum width, appending an ellipsis if truncated.")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "Options:")
-		fmt.Fprintln(stdout, "  -l, --left          Shorten from the left (ellipsis at start)")
-		fmt.Fprintln(stdout, "  -N, --no-newline    Omit newline after last output")
-		fmt.Fprintln(stdout, "  -c, --char CHARS    Ellipsis string (default: …)")
-		fmt.Fprintln(stdout, "  -m, --max INT       Maximum width (default: no limit)")
-		fmt.Fprintln(stdout, "  -q, --quiet         Suppress output; exit 0 if any shortened, 1 if none")
-		fmt.Fprintln(stdout, "  -h, --help          Show this help message")
+		fmt.Fprint(stdout, `Usage: string shorten [-h] [-l] [-N] [-q] [(-c | --char) CHARS] [(-m | --max) INTEGER] [STRING ...]
+
+  Shorten strings to a maximum width, appending an ellipsis if truncated.
+
+Options:
+  -l, --left          Shorten from the left (ellipsis at start)
+  -N, --no-newline    Omit newline after last output
+  -c, --char CHARS    Ellipsis string (default: …)
+  -m, --max INT       Maximum width (default: no limit)
+  -q, --quiet         Suppress output; exit 0 if any shortened, 1 if none
+  -h, --help          Show this help message
+`)
 		return 0
 	}
 

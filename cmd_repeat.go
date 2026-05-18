@@ -24,16 +24,17 @@ func runRepeat(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprintln(stdout, "Usage: string repeat [-h] -n COUNT [-m MAX] [-N] [-q] [STRING ...]")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "  Repeat STRING COUNT times.")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "Options:")
-		fmt.Fprintln(stdout, "  -n, --count COUNT   Number of times to repeat (required)")
-		fmt.Fprintln(stdout, "  -m, --max MAX       Maximum length of result")
-		fmt.Fprintln(stdout, "  -N, --no-newline    Omit newline after last output")
-		fmt.Fprintln(stdout, "  -q, --quiet         Suppress output; exit 0 if any output, 1 if none")
-		fmt.Fprintln(stdout, "  -h, --help          Show this help message")
+		fmt.Fprint(stdout, `Usage: string repeat [-h] -n COUNT [-m MAX] [-N] [-q] [STRING ...]
+
+  Repeat STRING COUNT times.
+
+Options:
+  -n, --count COUNT   Number of times to repeat (required)
+  -m, --max MAX       Maximum length of result
+  -N, --no-newline    Omit newline after last output
+  -q, --quiet         Suppress output; exit 0 if any output, 1 if none
+  -h, --help          Show this help message
+`)
 		return 0
 	}
 
@@ -59,7 +60,6 @@ func runRepeat(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	inputs := fs.Args()
 
-	// positional count: if -n not given, try first positional arg as count
 	if count == 0 && len(inputs) > 0 {
 		n, err := strconv.Atoi(inputs[0])
 		if err == nil {

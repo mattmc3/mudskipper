@@ -10,14 +10,47 @@ import (
 	"rsc.io/getopt"
 )
 
+type splitOpts struct {
+	help, quiet, noEmpty, right, allowEmpty bool
+	fields, maxStr                          string
+}
+
+func parseSplitFlags(name string, args []string) (*splitOpts, *getopt.FlagSet, error) {
+	var opts splitOpts
+	fs := getopt.NewFlagSet(name, flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	fs.BoolVar(&opts.help, "help", false, "")
+	fs.BoolVar(&opts.quiet, "quiet", false, "")
+	fs.BoolVar(&opts.noEmpty, "no-empty", false, "")
+	fs.BoolVar(&opts.right, "right", false, "")
+	fs.BoolVar(&opts.allowEmpty, "allow-empty", false, "")
+	fs.StringVar(&opts.fields, "fields", "", "")
+	fs.StringVar(&opts.maxStr, "max", "", "")
+	fs.Aliases("h", "help", "q", "quiet", "n", "no-empty", "r", "right", "a", "allow-empty", "f", "fields", "m", "max")
+	return &opts, fs, fs.Parse(args)
+}
+
 func runSplit(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	fs, help, quiet, noEmpty, right, allowEmpty, fields, maxStr := splitFlags("split")
-	if err := fs.Parse(args); err != nil {
+	opts, fs, err := parseSplitFlags("split", args)
+	if err != nil {
 		fmt.Fprintf(stderr, "error: split: %v\n", err)
 		return 1
 	}
-	if *help {
-		writeSplitHelp("split", stdout)
+	if opts.help {
+		fmt.Fprint(stdout, `Usage: string split [-h] [-n] [-r] [-q] [(-f | --fields) FIELDS [-a]] [(-m | --max) MAX] SEP [STRING ...]
+
+  Split each STRING by SEP.
+
+Options:
+  SEP                   Separator string
+  -n, --no-empty        Suppress empty results
+  -r, --right           Split from the right (useful with --max)
+  -f, --fields FIELDS   Output only specified fields (e.g. 1,3-5)
+  -a, --allow-empty     With --fields, skip missing fields instead of failing
+  -m, --max MAX         Maximum number of splits per string
+  -q, --quiet           Suppress output; exit 0 if any splits, 1 if none
+  -h, --help            Show this help message
+`)
 		return 0
 	}
 	rest := fs.Args()
@@ -25,84 +58,56 @@ func runSplit(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "error: split requires a separator")
 		return 1
 	}
-	return splitCore(rest[0], false, rest[1:], stdin, stdout, stderr, *quiet, *noEmpty, *right, *allowEmpty, *fields, *maxStr)
+	return splitCore(rest[0], false, rest[1:], stdin, stdout, stderr, opts)
 }
 
 func runSplit0(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	fs, help, quiet, noEmpty, right, allowEmpty, fields, maxStr := splitFlags("split0")
-	if err := fs.Parse(args); err != nil {
+	opts, fs, err := parseSplitFlags("split0", args)
+	if err != nil {
 		fmt.Fprintf(stderr, "error: split0: %v\n", err)
 		return 1
 	}
-	if *help {
-		writeSplitHelp("split0", stdout)
+	if opts.help {
+		fmt.Fprint(stdout, `Usage: string split0 [-h] [-n] [-r] [-q] [(-f | --fields) FIELDS [-a]] [(-m | --max) MAX] [STRING ...]
+
+  Split each STRING by NUL (\0). Trailing NUL is ignored.
+
+Options:
+  -n, --no-empty        Suppress empty results
+  -r, --right           Split from the right (useful with --max)
+  -f, --fields FIELDS   Output only specified fields (e.g. 1,3-5)
+  -a, --allow-empty     With --fields, skip missing fields instead of failing
+  -m, --max MAX         Maximum number of splits per string
+  -q, --quiet           Suppress output; exit 0 if any splits, 1 if none
+  -h, --help            Show this help message
+`)
 		return 0
 	}
-	return splitCore("\x00", true, fs.Args(), stdin, stdout, stderr, *quiet, *noEmpty, *right, *allowEmpty, *fields, *maxStr)
+	return splitCore("\x00", true, fs.Args(), stdin, stdout, stderr, opts)
 }
 
-func splitFlags(name string) (*getopt.FlagSet, *bool, *bool, *bool, *bool, *bool, *string, *string) {
-	fs := getopt.NewFlagSet(name, flag.ContinueOnError)
-	fs.SetOutput(io.Discard)
-	help := fs.Bool("help", false, "")
-	quiet := fs.Bool("quiet", false, "")
-	noEmpty := fs.Bool("no-empty", false, "")
-	right := fs.Bool("right", false, "")
-	allowEmpty := fs.Bool("allow-empty", false, "")
-	fields := fs.String("fields", "", "")
-	maxStr := fs.String("max", "", "")
-	fs.Aliases("h", "help", "q", "quiet", "n", "no-empty", "r", "right", "a", "allow-empty", "f", "fields", "m", "max")
-	return fs, help, quiet, noEmpty, right, allowEmpty, fields, maxStr
-}
-
-func writeSplitHelp(name string, w io.Writer) {
-	if name == "split0" {
-		fmt.Fprintln(w, "Usage: string split0 [-h] [-n] [-r] [-q] [(-f | --fields) FIELDS [-a]] [(-m | --max) MAX] [STRING ...]")
-	} else {
-		fmt.Fprintln(w, "Usage: string split [-h] [-n] [-r] [-q] [(-f | --fields) FIELDS [-a]] [(-m | --max) MAX] SEP [STRING ...]")
-	}
-	fmt.Fprintln(w, "")
-	if name == "split0" {
-		fmt.Fprintln(w, "  Split each STRING by NUL (\\0). Trailing NUL is ignored.")
-	} else {
-		fmt.Fprintln(w, "  Split each STRING by SEP.")
-	}
-	fmt.Fprintln(w, "")
-	fmt.Fprintln(w, "Options:")
-	if name != "split0" {
-		fmt.Fprintln(w, "  SEP                   Separator string")
-	}
-	fmt.Fprintln(w, "  -n, --no-empty        Suppress empty results")
-	fmt.Fprintln(w, "  -r, --right           Split from the right (useful with --max)")
-	fmt.Fprintln(w, "  -f, --fields FIELDS   Output only specified fields (e.g. 1,3-5)")
-	fmt.Fprintln(w, "  -a, --allow-empty     With --fields, skip missing fields instead of failing")
-	fmt.Fprintln(w, "  -m, --max MAX         Maximum number of splits per string")
-	fmt.Fprintln(w, "  -q, --quiet           Suppress output; exit 0 if any splits, 1 if none")
-	fmt.Fprintln(w, "  -h, --help            Show this help message")
-}
-
-func splitCore(sep string, nul0Mode bool, inputs []string, stdin io.Reader, stdout, stderr io.Writer, quiet, noEmpty, right, allowEmpty bool, fieldsSpec, maxStr string) int {
-	max := 0
-	if maxStr != "" {
-		n, err := strconv.Atoi(maxStr)
+func splitCore(sep string, nul0Mode bool, inputs []string, stdin io.Reader, stdout, stderr io.Writer, opts *splitOpts) int {
+	maxSplits := 0
+	if opts.maxStr != "" {
+		n, err := strconv.Atoi(opts.maxStr)
 		if err != nil || n < 0 {
-			fmt.Fprintf(stderr, "error: split: Invalid max value '%s'\n", maxStr)
+			fmt.Fprintf(stderr, "error: split: Invalid max value '%s'\n", opts.maxStr)
 			return 1
 		}
-		max = n
+		maxSplits = n
 	}
 
 	var fields []int
-	if fieldsSpec != "" {
+	if opts.fields != "" {
 		var err error
-		fields, err = parseFields(fieldsSpec)
+		fields, err = parseFields(opts.fields)
 		if err != nil {
 			fmt.Fprintf(stderr, "error: %v\n", err)
 			return 1
 		}
 	}
 
-	if allowEmpty && fields == nil {
+	if opts.allowEmpty && fields == nil {
 		fmt.Fprintln(stderr, "error: split: --allow-empty is only valid with --fields")
 		return 1
 	}
@@ -134,15 +139,15 @@ func splitCore(sep string, nul0Mode bool, inputs []string, stdin io.Reader, stdo
 
 	for _, s := range strs {
 		var parts []string
-		if right {
-			parts = splitRight(s, sep, max)
+		if opts.right {
+			parts = splitRight(s, sep, maxSplits)
 		} else {
-			parts = splitLeft(s, sep, max)
+			parts = splitLeft(s, sep, maxSplits)
 		}
 		if len(parts) > 1 {
 			anySplit = true
 		}
-		if noEmpty {
+		if opts.noEmpty {
 			var filtered []string
 			for _, p := range parts {
 				if p != "" {
@@ -155,7 +160,7 @@ func splitCore(sep string, nul0Mode bool, inputs []string, stdin io.Reader, stdo
 		var selected []string
 		if fields != nil {
 			var ok bool
-			selected, ok = selectFields(parts, fields, allowEmpty)
+			selected, ok = selectFields(parts, fields, opts.allowEmpty)
 			if !ok {
 				allFieldsFound = false
 			}
@@ -164,7 +169,7 @@ func splitCore(sep string, nul0Mode bool, inputs []string, stdin io.Reader, stdo
 		}
 
 		for _, p := range selected {
-			if !quiet {
+			if !opts.quiet {
 				fmt.Fprintln(stdout, p)
 			}
 		}

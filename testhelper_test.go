@@ -15,6 +15,12 @@ func runWithStdin(stdin string, args ...string) (exitCode int, stdout, stderr st
 	return exitCode, out.String(), err.String()
 }
 
+func splitLines(s string) []string {
+	s = strings.ReplaceAll(s, "\r\n", "\n")
+	s = strings.TrimRight(s, "\n")
+	return strings.Split(s, "\n")
+}
+
 func lines(stdout string) []string {
 	return splitLines(stdout)
 }

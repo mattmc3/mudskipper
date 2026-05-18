@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -29,14 +30,15 @@ func runEscape(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprintln(stdout, "Usage: string escape [-h] [-n] [--style=STYLE] [STRING ...]")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "  Escape strings for safe use in various contexts.")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "Options:")
-		fmt.Fprintln(stdout, "  -n, --no-quoted    Skip quoting strings that don't need it (script style only)")
-		fmt.Fprintln(stdout, "  --style=STYLE      script (default), url, html, regex, var")
-		fmt.Fprintln(stdout, "  -h, --help         Show this help message")
+		fmt.Fprint(stdout, `Usage: string escape [-h] [-n] [--style=STYLE] [STRING ...]
+
+  Escape strings for safe use in various contexts.
+
+Options:
+  -n, --no-quoted    Skip quoting strings that don't need it (script style only)
+  --style=STYLE      script (default), url, html, regex, var
+  -h, --help         Show this help message
+`)
 		return 0
 	}
 	if !validEscapeStyles[*style] {
@@ -66,13 +68,14 @@ func runUnescape(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprintln(stdout, "Usage: string unescape [-h] [--style=STYLE] [STRING ...]")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "  Unescape strings from various encoded formats.")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "Options:")
-		fmt.Fprintln(stdout, "  --style=STYLE    script (default), url, html, regex, var")
-		fmt.Fprintln(stdout, "  -h, --help       Show this help message")
+		fmt.Fprint(stdout, `Usage: string unescape [-h] [--style=STYLE] [STRING ...]
+
+  Unescape strings from various encoded formats.
+
+Options:
+  --style=STYLE    script (default), url, html, regex, var
+  -h, --help       Show this help message
+`)
 		return 0
 	}
 	if !validEscapeStyles[*style] {
@@ -258,7 +261,7 @@ func escapeVar(s string) string {
 		} else if c == '_' {
 			sb.WriteString("__")
 		} else {
-			sb.WriteString(fmt.Sprintf("_%02X_", int(c)))
+			fmt.Fprintf(&sb, "_%02X_", int(c))
 		}
 	}
 	return sb.String()
@@ -268,31 +271,33 @@ func unescapeVar(s string) string {
 	var sb strings.Builder
 	i := 0
 	for i < len(s) {
-		if s[i] == '_' {
-			if i+1 < len(s) && s[i+1] == '_' {
-				sb.WriteByte('_')
-				i += 2
-			} else {
-				j := i + 1
-				for j < len(s) && isHexByte(s[j]) {
-					j++
-				}
-				if j > i+1 && j < len(s) && s[j] == '_' {
-					var val rune
-					for _, b := range []byte(s[i+1 : j]) {
-						val = val*16 + rune(hexVal(b))
-					}
-					sb.WriteRune(val)
-					i = j + 1
-				} else {
-					sb.WriteByte(s[i])
-					i++
-				}
-			}
-		} else {
+		if s[i] != '_' {
 			sb.WriteByte(s[i])
 			i++
+			continue
 		}
+		if i+1 < len(s) && s[i+1] == '_' {
+			sb.WriteByte('_')
+			i += 2
+			continue
+		}
+		j := i + 1
+		for j < len(s) && s[j] != '_' {
+			b := s[j]
+			if !((b >= '0' && b <= '9') || (b >= 'A' && b <= 'F') || (b >= 'a' && b <= 'f')) {
+				break
+			}
+			j++
+		}
+		if j > i+1 && j < len(s) && s[j] == '_' {
+			if n, err := strconv.ParseInt(s[i+1:j], 16, 32); err == nil {
+				sb.WriteRune(rune(n))
+				i = j + 1
+				continue
+			}
+		}
+		sb.WriteByte(s[i])
+		i++
 	}
 	return sb.String()
 }
@@ -310,19 +315,4 @@ func unescapeRegex(s string) string {
 		}
 	}
 	return sb.String()
-}
-
-func isHexByte(b byte) bool {
-	return (b >= '0' && b <= '9') || (b >= 'A' && b <= 'F') || (b >= 'a' && b <= 'f')
-}
-
-func hexVal(b byte) int {
-	switch {
-	case b >= '0' && b <= '9':
-		return int(b - '0')
-	case b >= 'A' && b <= 'F':
-		return int(b-'A') + 10
-	default:
-		return int(b-'a') + 10
-	}
 }

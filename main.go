@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -9,7 +10,9 @@ import (
 const version = "0.0.1"
 
 func main() {
-	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+	bw := bufio.NewWriter(os.Stdout)
+	defer bw.Flush()
+	os.Exit(run(os.Args[1:], os.Stdin, bw, os.Stderr))
 }
 
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
@@ -72,11 +75,27 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 }
 
 func writeHelp(w io.Writer) {
-	fmt.Fprintln(w, "Usage: string <command> [options] [STRING ...]")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Commands:")
-	fmt.Fprintln(w, "  upper    Convert strings to uppercase")
-	fmt.Fprintln(w, "  lower    Convert strings to lowercase")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Use 'string <command> --help' for more information about a specific command.")
+	fmt.Fprint(w, `Usage: string <command> [options] [STRING ...]
+
+Commands:
+  collect    Collect strings into one output
+  escape     Escape strings for safe use in various contexts
+  join       Join strings with a separator
+  join0      Join strings with NUL separator
+  length     Print the length of each string
+  lower      Convert strings to lowercase
+  match      Match strings against a pattern
+  pad        Pad strings to a fixed width
+  repeat     Repeat a string
+  replace    Replace a pattern in strings
+  shorten    Shorten strings to a maximum width
+  split      Split strings by a separator
+  split0     Split strings by NUL
+  sub        Extract substrings
+  trim       Trim whitespace or characters
+  unescape   Unescape strings from encoded formats
+  upper      Convert strings to uppercase
+
+Use 'string <command> --help' for more information about a specific command.
+`)
 }

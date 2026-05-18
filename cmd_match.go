@@ -42,7 +42,22 @@ func runMatch(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		writeMatchHelp(stdout)
+		fmt.Fprint(stdout, `Usage: string match [-h] [-a] [-e] [-i] [-g] [-n] [-r] [-q] [-v] [-m MAX] PATTERN [STRING ...]
+
+  Match STRING against PATTERN (glob by default).
+
+Options:
+  -a, --all              Find all matches (not just the first)
+  -e, --entire           Print the entire STRING for matches
+  -i, --ignore-case      Ignore case when matching
+  -g, --groups-only      Print only capture groups (requires -r)
+  -n, --index            Print match position and length instead of value
+  -r, --regex            Treat PATTERN as a regular expression
+  -v, --invert           Print strings that do NOT match
+  -m, --max-matches MAX  Maximum number of matches to output
+  -q, --quiet            Suppress output; exit 0 if any match, 1 if none
+  -h, --help             Show this help message
+`)
 		return 0
 	}
 
@@ -225,22 +240,4 @@ func globToRegex(glob string, entire bool) string {
 		sb.WriteString("$")
 	}
 	return sb.String()
-}
-
-func writeMatchHelp(w io.Writer) {
-	fmt.Fprintln(w, "Usage: string match [-h] [-a] [-e] [-i] [-g] [-n] [-r] [-q] [-v] [-m MAX] PATTERN [STRING ...]")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "  Match STRING against PATTERN (glob by default).")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Options:")
-	fmt.Fprintln(w, "  -a, --all              Find all matches (not just the first)")
-	fmt.Fprintln(w, "  -e, --entire           Print the entire STRING for matches")
-	fmt.Fprintln(w, "  -i, --ignore-case      Ignore case when matching")
-	fmt.Fprintln(w, "  -g, --groups-only      Print only capture groups (requires -r)")
-	fmt.Fprintln(w, "  -n, --index            Print match position and length instead of value")
-	fmt.Fprintln(w, "  -r, --regex            Treat PATTERN as a regular expression")
-	fmt.Fprintln(w, "  -v, --invert           Print strings that do NOT match")
-	fmt.Fprintln(w, "  -m, --max-matches MAX  Maximum number of matches to output")
-	fmt.Fprintln(w, "  -q, --quiet            Suppress output; exit 0 if any match, 1 if none")
-	fmt.Fprintln(w, "  -h, --help             Show this help message")
 }

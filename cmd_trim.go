@@ -25,7 +25,17 @@ func runTrim(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		writeTrimHelp(stdout)
+		fmt.Fprint(stdout, `Usage: string trim [-h] [-l] [-r] [-q] [-c CHARS] [STRING ...]
+
+  Remove leading and trailing whitespace from STRING.
+
+Options:
+  -l, --left          Trim leading whitespace only
+  -r, --right         Trim trailing whitespace only
+  -c, --chars CHARS   Trim CHARS instead of whitespace
+  -q, --quiet         Suppress output; exit 0 if any string trimmed, 1 if none
+  -h, --help          Show this help message
+`)
 		return 0
 	}
 
@@ -69,28 +79,14 @@ func trimWhitespace(s string, left, right bool) string {
 }
 
 func trimChars(s string, left, right bool, chars string) string {
-	cutset := chars
 	switch {
 	case left && right:
-		return strings.Trim(s, cutset)
+		return strings.Trim(s, chars)
 	case left:
-		return strings.TrimLeft(s, cutset)
+		return strings.TrimLeft(s, chars)
 	case right:
-		return strings.TrimRight(s, cutset)
+		return strings.TrimRight(s, chars)
 	default:
 		return s
 	}
-}
-
-func writeTrimHelp(w io.Writer) {
-	fmt.Fprintln(w, "Usage: string trim [-h] [-l] [-r] [-q] [-c CHARS] [STRING ...]")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "  Remove leading and trailing whitespace from STRING.")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Options:")
-	fmt.Fprintln(w, "  -l, --left          Trim leading whitespace only")
-	fmt.Fprintln(w, "  -r, --right         Trim trailing whitespace only")
-	fmt.Fprintln(w, "  -c, --chars CHARS   Trim CHARS instead of whitespace")
-	fmt.Fprintln(w, "  -q, --quiet         Suppress output; exit 0 if any string trimmed, 1 if none")
-	fmt.Fprintln(w, "  -h, --help          Show this help message")
 }

@@ -21,14 +21,15 @@ func runCollect(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprintln(stdout, "Usage: string collect [-h] [-a] [-N] [STRING ...]")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "  Collect all strings into a single output.")
-		fmt.Fprintln(stdout, "")
-		fmt.Fprintln(stdout, "Options:")
-		fmt.Fprintln(stdout, "  -a, --allow-empty        Exit 0 even if result is empty")
-		fmt.Fprintln(stdout, "  -N, --no-trim-newlines   Preserve trailing newlines")
-		fmt.Fprintln(stdout, "  -h, --help               Show this help message")
+		fmt.Fprint(stdout, `Usage: string collect [-h] [-a] [-N] [STRING ...]
+
+  Collect all strings into a single output.
+
+Options:
+  -a, --allow-empty        Exit 0 even if result is empty
+  -N, --no-trim-newlines   Preserve trailing newlines
+  -h, --help               Show this help message
+`)
 		return 0
 	}
 
