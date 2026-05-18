@@ -260,7 +260,8 @@ var fishParityEscape = []cliTest{
 	{name: "url_special", args: []string{"escape", "--style=url", "a b#c\"'d"}, wantExit: 0, wantOut: []string{"a%20b%23c%22%27d"}},
 	// L371: string escape --style=url \na\nb%c~d\n
 	{name: "url_newlines", args: []string{"escape", "--style=url", "\na\nb%c~d\n"}, wantExit: 0, wantOut: []string{"%0Aa%0Ab%25c~d%0A"}},
-	// L374: string escape --style=var 'a b#c"\'d'  (fish packs adjacent: _22_27_; we emit _22__27_; known diff, skip)
+	// L374: string escape --style=var 'a b#c"\'d'  (fish packs adjacent: _22_27_; we use _22__27_; unambiguous round-trip)
+	// {name: "var_adjacent_encoded", args: []string{"escape", "--style=var", "a b#c\"'d"}, wantExit: 0, wantOut: []string{"a_20_b_23_c_22_27_d"}},
 	// L377: string escape --style=var a\nghi_
 	{name: "var_newline_underscore", args: []string{"escape", "--style=var", "a\nghi_"}, wantExit: 0, wantOut: []string{"a_0A_ghi__"}},
 	// L380: string escape --style=var abc
@@ -276,8 +277,8 @@ var fishParityEscape = []cliTest{
 	{name: "regex_no_meta", args: []string{"escape", "--style=regex", "bonjour, amigo"}, wantExit: 0, wantOut: []string{"bonjour, amigo"}},
 	// L411: string escape --style=regex "^this is a literal string"
 	{name: "regex_caret", args: []string{"escape", "--style=regex", "^this is a literal string"}, wantExit: 0, wantOut: []string{`\^this is a literal string`}},
-	// L412: string escape --style=regex "hello\nworld"  (fish renders \\n; Go regexp.QuoteMeta keeps literal newline; known diff)
-	// {name: "regex_newline", args: []string{"escape", "--style=regex", "hello\nworld"}, wantExit: 0, wantOut: []string{`hello\nworld`}},
+	// L412: string escape --style=regex "hello\nworld"
+	{name: "regex_newline", args: []string{"escape", "--style=regex", "hello\nworld"}, wantExit: 0, wantOut: []string{`hello\nworld`}},
 	// L419: string escape --style=unknown-style
 	{name: "unknown_style_error", args: []string{"escape", "--style=unknown-style"}, wantExit: 1, wantErr: "Invalid escape style 'unknown-style'"},
 	// L1013: string escape \x7F
@@ -436,8 +437,8 @@ var fishParityReplace = []cliTest{
 	{name: "regex_filter_no_match_exit1", args: []string{"replace", "--regex", "-f", "Z", "X", "1bc", "axc", "2", "d3f", "jk4", "xyz"}, wantExit: 1},
 	// L979: string replace -r "(*UTF).*" aaa
 	{name: "utf_mode_error", args: []string{"replace", "-r", "(*UTF).*", "replacement", "aaa"}, wantExit: 1, wantErr: "error:"},
-	// L989: echo az | string replace -r -- 'a(b.+)?z' 'a:$1z'  ($1z = group "1z" in Go ExpandString; known diff)
-	// {name: "unmatched_group_empty", stdin: "az\n", args: []string{"replace", "-r", "--", `a(b.+)?z`, `a:$1z`}, wantExit: 0, wantOut: []string{"a:z"}},
+	// L989: echo az | string replace -r -- 'a(b.+)?z' 'a:$1z'
+	{name: "unmatched_group_empty", stdin: "az\n", args: []string{"replace", "-r", `a(b.+)?z`, `a:$1z`}, wantExit: 0, wantOut: []string{"a:z"}},
 	// L1057: printf my-password | string replace -ra . \*
 	{name: "all_chars_asterisk", stdin: "my-password", args: []string{"replace", "-ra", ".", "*"}, wantExit: 0, wantOut: []string{"***********"}},
 	// L1296: printf "dog\ncat\nbat\n" | string replace -r --max-matches 1 '^c' h

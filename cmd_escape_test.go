@@ -116,6 +116,24 @@ func TestUnescape_empty_returns_1(t *testing.T) {
 	assertExit(t, 1, exit)
 }
 
+// Tests for known fish parity differences — should fail before fix, pass after
+
+func TestEscapeVar_adjacent_encoded_chars(t *testing.T) {
+	// We use _HEX__HEX_ (double underscore) rather than fish's _HEX_HEX_ (shared separator).
+	// The shared-separator format is ambiguous to decode (letters b-f also valid hex digits).
+	// Round-trip is correct; only the intermediate format differs.
+	exit, stdout, _ := runCmd("escape", "--style=var", "a b#c\"'d")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"a_20_b_23_c_22__27_d"}, lines(stdout))
+}
+
+func TestEscapeRegex_newline_escaped_as_backslash_n(t *testing.T) {
+	// fish encodes literal newline as \n in regex escape
+	exit, stdout, _ := runCmd("escape", "--style=regex", "hello\nworld")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{`hello\nworld`}, lines(stdout))
+}
+
 func TestUnescape_help_shows_usage(t *testing.T) {
 	exit, stdout, _ := runCmd("unescape", "--help")
 	assertExit(t, 0, exit)

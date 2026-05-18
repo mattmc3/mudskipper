@@ -106,7 +106,11 @@ func escapeString(s, style string, noQuoted bool) string {
 	case "html":
 		return html.EscapeString(s)
 	case "regex":
-		return regexp.QuoteMeta(s)
+		escaped := regexp.QuoteMeta(s)
+		escaped = strings.ReplaceAll(escaped, "\n", `\n`)
+		escaped = strings.ReplaceAll(escaped, "\r", `\r`)
+		escaped = strings.ReplaceAll(escaped, "\t", `\t`)
+		return escaped
 	case "var":
 		return escapeVar(s)
 	default:

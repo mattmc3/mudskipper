@@ -143,7 +143,46 @@ func replaceLiteral(s, pattern, replacement string, limit int, ignoreCase bool) 
 	return sb.String()
 }
 
+// normalizeReplacement converts fish-style $N references to Go's ${N} form,
+// preventing ambiguity when $N is followed by alphanumeric (e.g. $1z → ${1}z).
+func normalizeReplacement(s string) string {
+	var sb strings.Builder
+	i := 0
+	for i < len(s) {
+		if s[i] != '$' {
+			sb.WriteByte(s[i])
+			i++
+			continue
+		}
+		if i+1 < len(s) && (s[i+1] == '$' || s[i+1] == '{') {
+			sb.WriteByte('$')
+			i++
+			continue
+		}
+		j := i + 1
+		for j < len(s) && s[j] >= '0' && s[j] <= '9' {
+			j++
+		}
+		if j == i+1 {
+			sb.WriteByte('$')
+			i++
+			continue
+		}
+		followedByAlnum := j < len(s) && (s[j] >= 'a' && s[j] <= 'z' || s[j] >= 'A' && s[j] <= 'Z' || s[j] >= '0' && s[j] <= '9' || s[j] == '_')
+		if followedByAlnum {
+			sb.WriteString("${")
+			sb.WriteString(s[i+1 : j])
+			sb.WriteByte('}')
+		} else {
+			sb.WriteString(s[i:j])
+		}
+		i = j
+	}
+	return sb.String()
+}
+
 func replaceRegexLimited(s string, re *regexp.Regexp, repl string, limit int) string {
+	repl = normalizeReplacement(repl)
 	if limit < 0 {
 		return re.ReplaceAllString(s, repl)
 	}

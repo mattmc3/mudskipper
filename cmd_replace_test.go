@@ -185,8 +185,7 @@ func TestReplace_utf_mode_regex_is_error(t *testing.T) {
 }
 
 func TestReplace_regex_unmatched_group_is_empty(t *testing.T) {
-	// Go ExpandString reads "$1z" as group "1z", not group 1 + "z"; use ${1} form instead
-	exit, stdout, _ := runCmd("replace", "-r", `a(b.+)?z`, `a:${1}z`, "az")
+	exit, stdout, _ := runCmd("replace", "-r", `a(b.+)?z`, `a:$1z`, "az")
 	assertExit(t, 0, exit)
 	assertLines(t, []string{"a:z"}, lines(stdout))
 }
@@ -213,6 +212,15 @@ func TestReplace_max_matches_overflow_is_error(t *testing.T) {
 	exit, _, stderr := runCmd("replace", "--max-matches", "99999999999999999999")
 	assertExit(t, 1, exit)
 	assertContains(t, "Invalid max matches value", stderr)
+}
+
+// Test for $1z template ambiguity — should fail before fix, pass after
+
+func TestReplace_regex_group_ref_followed_by_alphanum(t *testing.T) {
+	// Go ExpandString reads $1z as group "1z"; should treat as group 1 + literal "z"
+	exit, stdout, _ := runCmd("replace", "-r", `a(b.+)?z`, `a:$1z`, "az")
+	assertExit(t, 0, exit)
+	assertLines(t, []string{"a:z"}, lines(stdout))
 }
 
 func TestReplace_no_args_is_error(t *testing.T) {
