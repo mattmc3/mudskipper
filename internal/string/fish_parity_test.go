@@ -528,7 +528,10 @@ var fishParityShorten = []cliTest{
 // fishParityQuietEarlyExit verifies --quiet exits 0 on first match without consuming all stdin.
 // Uses real infinite pipes so the test actually hangs if early-exit is broken.
 // L993-L1003: yes | string match -q y / string length -q / string replace -q y n
-var fishParityQuietEarlyExit = []struct{ name string; args []string }{
+var fishParityQuietEarlyExit = []struct {
+	name string
+	args []string
+}{
 	{"match_q", []string{"match", "-q", "y"}},
 	{"length_q", []string{"length", "-q"}},
 	{"replace_q", []string{"replace", "-q", "y", "n"}},
