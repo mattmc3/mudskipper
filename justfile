@@ -8,6 +8,7 @@ build:
     go build -o dist/contains ./cmd/contains
     go build -o dist/path ./cmd/path
     go build -o dist/math ./cmd/math
+    go build -o dist/argparse ./cmd/argparse
 
 run cmd *ARGS:
     go run ./cmd/{{cmd}} {{ARGS}}
@@ -30,7 +31,7 @@ release version:
     echo "Run: git push origin --tags"
 
 install:
-    go install ./cmd/string ./cmd/count ./cmd/contains ./cmd/path ./cmd/math
+    go install ./cmd/string ./cmd/count ./cmd/contains ./cmd/path ./cmd/math ./cmd/argparse
 
 tidy:
     go mod tidy
