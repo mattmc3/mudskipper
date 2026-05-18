@@ -2,16 +2,18 @@ default:
     @just --list
 
 build:
-    go build -o string .
+    go build -o string ./cmd/string
+    go build -o count ./cmd/count
+    go build -o contains ./cmd/contains
 
-run *ARGS:
-    go run . {{ARGS}}
+run cmd *ARGS:
+    go run ./cmd/{{cmd}} {{ARGS}}
 
 test *ARGS:
     go test ./... {{ARGS}}
 
 clean:
-    rm -f string
+    rm -f string count contains
     rm -f coverage.out coverage.html
 
 release version:
@@ -25,7 +27,7 @@ release version:
     echo "Run: git push origin --tags"
 
 install:
-    go install .
+    go install ./cmd/string ./cmd/count ./cmd/contains
 
 tidy:
     go mod tidy
