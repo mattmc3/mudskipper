@@ -25,8 +25,5 @@ func inputStrings(args []string, stdin io.Reader) []string {
 func splitLines(s string) []string {
 	s = strings.ReplaceAll(s, "\r\n", "\n")
 	s = strings.TrimRight(s, "\n")
-	if s == "" {
-		return []string{}
-	}
 	return strings.Split(s, "\n")
 }

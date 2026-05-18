@@ -80,44 +80,76 @@ func visualWidthOfLines(s string) []int {
 	return append(result, pos)
 }
 
-func visualTakeLeft(s string, targetWidth int) string {
-	w := 0
+type vseg struct {
+	byteStart, byteEnd int
+	width              int
+}
+
+func buildVSegs(s string) []vseg {
+	var segs []vseg
 	for i := 0; i < len(s); {
+		if s[i] == 0x1b {
+			end := skipAnsi(s, i)
+			segs = append(segs, vseg{i, end, 0})
+			i = end
+			continue
+		}
 		if s[i] == '\b' {
-			if w > 0 {
-				w--
-			}
+			segs = append(segs, vseg{i, i + 1, -1})
 			i++
 			continue
 		}
 		r, size := utf8.DecodeRuneInString(s[i:])
-		rw := runewidth.RuneWidth(r)
-		if rw == 0 {
-			i += size
+		segs = append(segs, vseg{i, i + size, runewidth.RuneWidth(r)})
+		i += size
+	}
+	return segs
+}
+
+func visualTakeLeft(s string, targetWidth int) string {
+	segs := buildVSegs(s)
+	w := 0
+	lastIdx := -1
+	for i, seg := range segs {
+		if seg.width == -1 {
+			if w > 0 {
+				w--
+			}
+			if w < targetWidth {
+				lastIdx = i
+			}
+			continue
+		}
+		if seg.width == 0 {
+			if w < targetWidth {
+				lastIdx = i
+			}
 			continue
 		}
 		if w >= targetWidth {
-			return s[:i]
+			break
 		}
-		w += rw
-		i += size
+		w += seg.width
+		lastIdx = i
 	}
-	return s
+	if lastIdx < 0 {
+		return ""
+	}
+	return s[:segs[lastIdx].byteEnd]
 }
 
 func visualTakeRight(s string, targetWidth int) string {
+	segs := buildVSegs(s)
 	w := 0
-	i := len(s)
-	for i > 0 {
-		r, size := utf8.DecodeLastRuneInString(s[:i])
-		rw := runewidth.RuneWidth(r)
-		if rw > 0 {
-			if w >= targetWidth {
-				return s[i:]
-			}
-			w += rw
+	for j := len(segs) - 1; j >= 0; j-- {
+		sw := segs[j].width
+		if sw <= 0 {
+			continue
 		}
-		i -= size
+		if w >= targetWidth {
+			return s[segs[j].byteEnd:]
+		}
+		w += sw
 	}
-	return s[i:]
+	return s
 }

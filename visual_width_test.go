@@ -79,3 +79,19 @@ func TestVisualTakeRight_zero_width(t *testing.T) {
 func TestVisualTakeRight_full_string(t *testing.T) {
 	assertStr(t, "foo", visualTakeRight("foo", 3))
 }
+
+func TestVisualTakeLeft_ansi_sequence_not_counted(t *testing.T) {
+	assertStr(t, "\x1b[31mhel", visualTakeLeft("\x1b[31mhello\x1b[0m", 3))
+}
+
+func TestVisualTakeLeft_ansi_sequence_zero_width_included(t *testing.T) {
+	assertStr(t, "\x1b[31mhello", visualTakeLeft("\x1b[31mhello\x1b[0m", 5))
+}
+
+func TestVisualTakeRight_ansi_sequence_not_counted(t *testing.T) {
+	assertStr(t, "llo\x1b[0m", visualTakeRight("\x1b[31mhello\x1b[0m", 3))
+}
+
+func TestVisualTakeRight_ansi_only_prefix(t *testing.T) {
+	assertStr(t, "\x1b[31mhello\x1b[0m", visualTakeRight("\x1b[31mhello\x1b[0m", 5))
+}
