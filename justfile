@@ -5,6 +5,7 @@ build:
     go build -o string ./cmd/string
     go build -o count ./cmd/count
     go build -o contains ./cmd/contains
+    go build -o path ./cmd/path
 
 run cmd *ARGS:
     go run ./cmd/{{cmd}} {{ARGS}}
@@ -27,7 +28,7 @@ release version:
     echo "Run: git push origin --tags"
 
 install:
-    go install ./cmd/string ./cmd/count ./cmd/contains
+    go install ./cmd/string ./cmd/count ./cmd/contains ./cmd/path
 
 tidy:
     go mod tidy
