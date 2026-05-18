@@ -43,6 +43,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runMatch(rest, stdin, stdout, stderr)
 	case "collect":
 		return runCollect(rest, stdin, stdout, stderr)
+	case "repeat":
+		return runRepeat(rest, stdin, stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "string %s: invalid subcommand\n", cmd)
 		return 1
