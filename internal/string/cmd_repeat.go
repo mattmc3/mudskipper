@@ -10,6 +10,18 @@ import (
 	"rsc.io/getopt"
 )
 
+const usageRepeat = `Usage: string repeat [-h] -n COUNT [-m MAX] [-N] [-q] [STRING ...]
+
+  Repeat STRING COUNT times.
+
+Options:
+  -n, --count COUNT   Number of times to repeat (required)
+  -m, --max MAX       Maximum length of result
+  -N, --no-newline    Omit newline after last output
+  -q, --quiet         Suppress output; exit 0 if any output, 1 if none
+  -h, --help          Show this help message
+`
+
 func runRepeat(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("repeat", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -24,17 +36,7 @@ func runRepeat(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string repeat [-h] -n COUNT [-m MAX] [-N] [-q] [STRING ...]
-
-  Repeat STRING COUNT times.
-
-Options:
-  -n, --count COUNT   Number of times to repeat (required)
-  -m, --max MAX       Maximum length of result
-  -N, --no-newline    Omit newline after last output
-  -q, --quiet         Suppress output; exit 0 if any output, 1 if none
-  -h, --help          Show this help message
-`)
+		fmt.Fprint(stdout, usageRepeat)
 		return 0
 	}
 

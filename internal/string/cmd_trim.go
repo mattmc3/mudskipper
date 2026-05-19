@@ -10,6 +10,18 @@ import (
 	"rsc.io/getopt"
 )
 
+const usageTrim = `Usage: string trim [-h] [-l] [-r] [-q] [-c CHARS] [STRING ...]
+
+  Remove leading and trailing whitespace from STRING.
+
+Options:
+  -l, --left          Trim leading whitespace only
+  -r, --right         Trim trailing whitespace only
+  -c, --chars CHARS   Trim CHARS instead of whitespace
+  -q, --quiet         Suppress output; exit 0 if any string trimmed, 1 if none
+  -h, --help          Show this help message
+`
+
 func runTrim(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("trim", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -25,17 +37,7 @@ func runTrim(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string trim [-h] [-l] [-r] [-q] [-c CHARS] [STRING ...]
-
-  Remove leading and trailing whitespace from STRING.
-
-Options:
-  -l, --left          Trim leading whitespace only
-  -r, --right         Trim trailing whitespace only
-  -c, --chars CHARS   Trim CHARS instead of whitespace
-  -q, --quiet         Suppress output; exit 0 if any string trimmed, 1 if none
-  -h, --help          Show this help message
-`)
+		fmt.Fprint(stdout, usageTrim)
 		return 0
 	}
 

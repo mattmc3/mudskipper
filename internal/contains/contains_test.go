@@ -11,6 +11,18 @@ func run(args []string) (int, string, string) {
 	return code, out.String(), err.String()
 }
 
+func TestContains_help(t *testing.T) {
+	for _, flag := range []string{"-h", "--help"} {
+		code, out, _ := run([]string{flag})
+		if code != 0 {
+			t.Errorf("%s: exit want 0, got %d", flag, code)
+		}
+		if !strings.Contains(out, "Usage:") {
+			t.Errorf("%s: stdout want Usage, got %q", flag, out)
+		}
+	}
+}
+
 func TestContains_found(t *testing.T) {
 	code, _, _ := run([]string{"foo", "bar", "baz", "foo"})
 	if code != 0 {

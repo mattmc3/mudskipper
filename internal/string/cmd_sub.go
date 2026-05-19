@@ -10,6 +10,18 @@ import (
 	"rsc.io/getopt"
 )
 
+const usageSub = `Usage: string sub [-h] [(-s | --start) START] [(-e | --end) END] [(-l | --length) LENGTH] [-q] [STRING ...]
+
+  Extract substrings from STRING.
+
+Options:
+  -s, --start INT      Start position (1-based; negative counts from end)
+  -e, --end INT        End position, inclusive (1-based; negative counts from end)
+  -l, --length INT     Length of substring (overrides --end)
+  -q, --quiet          Suppress output; exit 0 if any result non-empty, 1 if all empty
+  -h, --help           Show this help message
+`
+
 func runSub(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("sub", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -24,17 +36,7 @@ func runSub(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string sub [-h] [(-s | --start) START] [(-e | --end) END] [(-l | --length) LENGTH] [-q] [STRING ...]
-
-  Extract substrings from STRING.
-
-Options:
-  -s, --start INT      Start position (1-based; negative counts from end)
-  -e, --end INT        End position, inclusive (1-based; negative counts from end)
-  -l, --length INT     Length of substring (overrides --end)
-  -q, --quiet          Suppress output; exit 0 if any result non-empty, 1 if all empty
-  -h, --help           Show this help message
-`)
+		fmt.Fprint(stdout, usageSub)
 		return 0
 	}
 

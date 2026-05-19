@@ -18,6 +18,25 @@ var validEscapeStyles = map[string]bool{
 	"script": true, "url": true, "html": true, "regex": true, "var": true,
 }
 
+const usageEscape = `Usage: string escape [-h] [-n] [--style=STYLE] [STRING ...]
+
+  Escape strings for safe use in various contexts.
+
+Options:
+  -n, --no-quoted    Skip quoting strings that don't need it (script style only)
+  --style=STYLE      script (default), url, html, regex, var
+  -h, --help         Show this help message
+`
+
+const usageUnescape = `Usage: string unescape [-h] [--style=STYLE] [STRING ...]
+
+  Unescape strings from various encoded formats.
+
+Options:
+  --style=STYLE    script (default), url, html, regex, var
+  -h, --help       Show this help message
+`
+
 func runEscape(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("escape", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -30,15 +49,7 @@ func runEscape(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string escape [-h] [-n] [--style=STYLE] [STRING ...]
-
-  Escape strings for safe use in various contexts.
-
-Options:
-  -n, --no-quoted    Skip quoting strings that don't need it (script style only)
-  --style=STYLE      script (default), url, html, regex, var
-  -h, --help         Show this help message
-`)
+		fmt.Fprint(stdout, usageEscape)
 		return 0
 	}
 	if !validEscapeStyles[*style] {
@@ -68,14 +79,7 @@ func runUnescape(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string unescape [-h] [--style=STYLE] [STRING ...]
-
-  Unescape strings from various encoded formats.
-
-Options:
-  --style=STYLE    script (default), url, html, regex, var
-  -h, --help       Show this help message
-`)
+		fmt.Fprint(stdout, usageUnescape)
 		return 0
 	}
 	if !validEscapeStyles[*style] {

@@ -11,6 +11,20 @@ import (
 	"rsc.io/getopt"
 )
 
+const usageReplace = `Usage: string replace [-h] [-a] [-f] [-i] [-r] [-q] [(-m | --max-matches) MAX] PATTERN REPLACEMENT [STRING ...]
+
+  Replace PATTERN with REPLACEMENT in each STRING.
+
+Options:
+  -a, --all                Replace all occurrences (default: first only)
+  -f, --filter             Only print strings where a replacement was made
+  -i, --ignore-case        Case-insensitive matching
+  -r, --regex              Treat PATTERN as a regular expression
+  -m, --max-matches MAX    Maximum number of replacements per string
+  -q, --quiet              Suppress output; exit 0 if any replacement, 1 if none
+  -h, --help               Show this help message
+`
+
 func runReplace(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("replace", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -27,19 +41,7 @@ func runReplace(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string replace [-h] [-a] [-f] [-i] [-r] [-q] [(-m | --max-matches) MAX] PATTERN REPLACEMENT [STRING ...]
-
-  Replace PATTERN with REPLACEMENT in each STRING.
-
-Options:
-  -a, --all                Replace all occurrences (default: first only)
-  -f, --filter             Only print strings where a replacement was made
-  -i, --ignore-case        Case-insensitive matching
-  -r, --regex              Treat PATTERN as a regular expression
-  -m, --max-matches MAX    Maximum number of replacements per string
-  -q, --quiet              Suppress output; exit 0 if any replacement, 1 if none
-  -h, --help               Show this help message
-`)
+		fmt.Fprint(stdout, usageReplace)
 		return 0
 	}
 

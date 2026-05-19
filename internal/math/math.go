@@ -11,6 +11,21 @@ import (
 
 const scaleMax = 15
 
+const usage = `Usage: math [-s SCALE] [-b BASE] EXPRESSION ...
+
+  Evaluate arithmetic expressions.
+
+Options:
+  -s, --scale=N    Decimal places (0-15, or 'max' for full precision)
+  -b, --base=N     Output base (2-16, or 'hex'/'octal', default 10)
+  -h, --help       Show this help message
+
+Constants: pi, e, tau, inf
+Functions: sin cos tan asin acos atan atan2 sinh cosh tanh
+           sqrt exp ln log log2 log10 abs floor ceil round pow max min
+           bitand bitor bitxor
+`
+
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	// Parse flags manually — math args look like expressions, not typical getopt flags.
 	scale := -1 // -1 = auto
@@ -25,20 +40,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			break
 		}
 		if arg == "--help" || arg == "-h" {
-			fmt.Fprint(stdout, `Usage: math [-s SCALE] [-b BASE] EXPRESSION ...
-
-  Evaluate arithmetic expressions.
-
-Options:
-  -s, --scale=N    Decimal places (0-15, or 'max' for full precision)
-  -b, --base=N     Output base (2-16, or 'hex'/'octal', default 10)
-  -h, --help       Show this help message
-
-Constants: pi, e, tau, inf
-Functions: sin cos tan asin acos atan atan2 sinh cosh tanh
-           sqrt exp ln log log2 log10 abs floor ceil round pow max min
-           bitand bitor bitxor
-`)
+			fmt.Fprint(stdout, usage)
 			return 0
 		}
 

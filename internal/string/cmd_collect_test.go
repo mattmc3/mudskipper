@@ -1,8 +1,21 @@
 package stringcmd
 
 import (
+	"strings"
 	"testing"
 )
+
+func TestString_help(t *testing.T) {
+	for _, flag := range []string{"-h", "--help", "help"} {
+		code, out, _ := runCmd(flag)
+		if code != 0 {
+			t.Errorf("%s: exit want 0, got %d", flag, code)
+		}
+		if !strings.Contains(out, "Usage:") {
+			t.Errorf("%s: stdout want Usage, got %q", flag, out)
+		}
+	}
+}
 
 func TestCollect_joins_args_with_newlines(t *testing.T) {
 	exit, stdout, _ := runCmd("collect", "a", "b", "c")

@@ -10,6 +10,30 @@ import (
 	"rsc.io/getopt"
 )
 
+const splitSharedOptions = `  -n, --no-empty        Suppress empty results
+  -r, --right           Split from the right (useful with --max)
+  -f, --fields FIELDS   Output only specified fields (e.g. 1,3-5)
+  -a, --allow-empty     With --fields, skip missing fields instead of failing
+  -m, --max MAX         Maximum number of splits per string
+  -q, --quiet           Suppress output; exit 0 if any splits, 1 if none
+  -h, --help            Show this help message
+`
+
+const usageSplit = `Usage: string split [-h] [-n] [-r] [-q] [(-f | --fields) FIELDS [-a]] [(-m | --max) MAX] SEP [STRING ...]
+
+  Split each STRING by SEP.
+
+Options:
+  SEP                   Separator string
+` + splitSharedOptions
+
+const usageSplit0 = `Usage: string split0 [-h] [-n] [-r] [-q] [(-f | --fields) FIELDS [-a]] [(-m | --max) MAX] [STRING ...]
+
+  Split each STRING by NUL (\0). Trailing NUL is ignored.
+
+Options:
+` + splitSharedOptions
+
 type splitOpts struct {
 	help, quiet, noEmpty, right, allowEmpty bool
 	fields, maxStr                          string
@@ -37,20 +61,7 @@ func runSplit(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if opts.help {
-		fmt.Fprint(stdout, `Usage: string split [-h] [-n] [-r] [-q] [(-f | --fields) FIELDS [-a]] [(-m | --max) MAX] SEP [STRING ...]
-
-  Split each STRING by SEP.
-
-Options:
-  SEP                   Separator string
-  -n, --no-empty        Suppress empty results
-  -r, --right           Split from the right (useful with --max)
-  -f, --fields FIELDS   Output only specified fields (e.g. 1,3-5)
-  -a, --allow-empty     With --fields, skip missing fields instead of failing
-  -m, --max MAX         Maximum number of splits per string
-  -q, --quiet           Suppress output; exit 0 if any splits, 1 if none
-  -h, --help            Show this help message
-`)
+		fmt.Fprint(stdout, usageSplit)
 		return 0
 	}
 	rest := fs.Args()
@@ -68,19 +79,7 @@ func runSplit0(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if opts.help {
-		fmt.Fprint(stdout, `Usage: string split0 [-h] [-n] [-r] [-q] [(-f | --fields) FIELDS [-a]] [(-m | --max) MAX] [STRING ...]
-
-  Split each STRING by NUL (\0). Trailing NUL is ignored.
-
-Options:
-  -n, --no-empty        Suppress empty results
-  -r, --right           Split from the right (useful with --max)
-  -f, --fields FIELDS   Output only specified fields (e.g. 1,3-5)
-  -a, --allow-empty     With --fields, skip missing fields instead of failing
-  -m, --max MAX         Maximum number of splits per string
-  -q, --quiet           Suppress output; exit 0 if any splits, 1 if none
-  -h, --help            Show this help message
-`)
+		fmt.Fprint(stdout, usageSplit0)
 		return 0
 	}
 	return splitCore("\x00", true, fs.Args(), stdin, stdout, stderr, opts)

@@ -8,6 +8,16 @@ import (
 	"rsc.io/getopt"
 )
 
+const usageLength = `Usage: string length [-h] [-q] [-V] [STRING ...]
+
+  Print the length of each STRING.
+
+Options:
+  -V, --visible    Count visible width (strip ANSI escape sequences)
+  -q, --quiet      Suppress output; exit 0 if any non-empty, 1 if all empty
+  -h, --help       Show this help message
+`
+
 func runLength(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("length", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -21,15 +31,7 @@ func runLength(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string length [-h] [-q] [-V] [STRING ...]
-
-  Print the length of each STRING.
-
-Options:
-  -V, --visible    Count visible width (strip ANSI escape sequences)
-  -q, --quiet      Suppress output; exit 0 if any non-empty, 1 if all empty
-  -h, --help       Show this help message
-`)
+		fmt.Fprint(stdout, usageLength)
 		return 0
 	}
 

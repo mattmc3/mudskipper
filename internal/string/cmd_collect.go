@@ -9,6 +9,16 @@ import (
 	"rsc.io/getopt"
 )
 
+const usageCollect = `Usage: string collect [-h] [-a] [-N] [STRING ...]
+
+  Collect all strings into a single output.
+
+Options:
+  -a, --allow-empty        Exit 0 even if result is empty
+  -N, --no-trim-newlines   Preserve trailing newlines
+  -h, --help               Show this help message
+`
+
 func runCollect(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("collect", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -21,15 +31,7 @@ func runCollect(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string collect [-h] [-a] [-N] [STRING ...]
-
-  Collect all strings into a single output.
-
-Options:
-  -a, --allow-empty        Exit 0 even if result is empty
-  -N, --no-trim-newlines   Preserve trailing newlines
-  -h, --help               Show this help message
-`)
+		fmt.Fprint(stdout, usageCollect)
 		return 0
 	}
 

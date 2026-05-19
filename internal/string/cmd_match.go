@@ -11,6 +11,23 @@ import (
 	"rsc.io/getopt"
 )
 
+const usageMatch = `Usage: string match [-h] [-a] [-e] [-i] [-g] [-n] [-r] [-q] [-v] [-m MAX] PATTERN [STRING ...]
+
+  Match STRING against PATTERN (glob by default).
+
+Options:
+  -a, --all              Find all matches (not just the first)
+  -e, --entire           Print the entire STRING for matches
+  -i, --ignore-case      Ignore case when matching
+  -g, --groups-only      Print only capture groups (requires -r)
+  -n, --index            Print match position and length instead of value
+  -r, --regex            Treat PATTERN as a regular expression
+  -v, --invert           Print strings that do NOT match
+  -m, --max-matches MAX  Maximum number of matches to output
+  -q, --quiet            Suppress output; exit 0 if any match, 1 if none
+  -h, --help             Show this help message
+`
+
 func runMatch(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("match", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -42,22 +59,7 @@ func runMatch(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string match [-h] [-a] [-e] [-i] [-g] [-n] [-r] [-q] [-v] [-m MAX] PATTERN [STRING ...]
-
-  Match STRING against PATTERN (glob by default).
-
-Options:
-  -a, --all              Find all matches (not just the first)
-  -e, --entire           Print the entire STRING for matches
-  -i, --ignore-case      Ignore case when matching
-  -g, --groups-only      Print only capture groups (requires -r)
-  -n, --index            Print match position and length instead of value
-  -r, --regex            Treat PATTERN as a regular expression
-  -v, --invert           Print strings that do NOT match
-  -m, --max-matches MAX  Maximum number of matches to output
-  -q, --quiet            Suppress output; exit 0 if any match, 1 if none
-  -h, --help             Show this help message
-`)
+		fmt.Fprint(stdout, usageMatch)
 		return 0
 	}
 

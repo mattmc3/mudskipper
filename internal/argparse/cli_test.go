@@ -82,6 +82,8 @@ func runBin(t *testing.T, tc cliTest) {
 // argparse CLI tests — real binary execution, verifying eval-able output
 
 var argparseDispatch = []cliTest{
+	{name: "help_short", args: []string{"-h"}, wantExit: 0, wantOut: []string{"Usage:"}},
+	{name: "help_long", args: []string{"--help"}, wantExit: 0, wantOut: []string{"Usage:"}},
 	{name: "missing_separator", args: []string{"h/help"}, wantExit: 1, wantErr: "Missing -- separator"},
 	{name: "no_specs_no_args", args: []string{"--shell=bash", "--"}, wantExit: 0, wantOut: []string{"set --"}},
 	{name: "empty_args", args: []string{"--shell=bash", "h/help", "--"}, wantExit: 0, wantOut: []string{"set --"}},

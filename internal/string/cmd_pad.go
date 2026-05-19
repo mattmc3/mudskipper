@@ -12,6 +12,18 @@ import (
 	"rsc.io/getopt"
 )
 
+const usagePad = `Usage: string pad [-h] [-r] [-C] [(-c | --char) CHAR] [(-w | --width) INTEGER] [STRING ...]
+
+  Pad strings to a fixed width.
+
+Options:
+  -r, --right         Pad on the right (left-align)
+  -C, --center        Center the string
+  -c, --char CHAR     Character to use for padding (default: space)
+  -w, --width INT     Target width (default: longest string)
+  -h, --help          Show this help message
+`
+
 func runPad(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs := getopt.NewFlagSet("pad", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -26,17 +38,7 @@ func runPad(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string pad [-h] [-r] [-C] [(-c | --char) CHAR] [(-w | --width) INTEGER] [STRING ...]
-
-  Pad strings to a fixed width.
-
-Options:
-  -r, --right         Pad on the right (left-align)
-  -C, --center        Center the string
-  -c, --char CHAR     Character to use for padding (default: space)
-  -w, --width INT     Target width (default: longest string)
-  -h, --help          Show this help message
-`)
+		fmt.Fprint(stdout, usagePad)
 		return 0
 	}
 

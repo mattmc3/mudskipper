@@ -15,6 +15,142 @@ import (
 	"rsc.io/getopt"
 )
 
+const usage = `Usage: path <subcommand> [options] [PATH ...]
+
+Subcommands:
+  basename        Strip directory and optionally suffix from a path
+  change-extension  Replace the file extension
+  dirname         Return the directory component of a path
+  extension       Return the file extension
+  filter          Filter paths by type
+  is              Test path properties
+  mtime           Print last-modified time of a path
+  normalize       Resolve symlinks and canonicalize a path
+  resolve         Resolve a relative path to absolute
+  sort            Sort a list of paths
+
+Use 'path <subcommand> --help' for more information about a specific subcommand.
+`
+
+const usageBasename = `Usage: path basename [-h] [-E] [-q] [-Z] [PATH ...]
+
+  Print the non-directory part of each PATH.
+
+Options:
+  -E, --strip-extension   Strip file extension from result
+  -q, --quiet             Suppress output; exit 0 if any path, 1 if none
+  -Z, --null-out          Separate output with NUL instead of newline
+  -h, --help              Show this help message
+`
+
+const usageDirname = `Usage: path dirname [-h] [-q] [-Z] [PATH ...]
+
+  Print the directory part of each PATH.
+
+Options:
+  -q, --quiet      Suppress output; exit 0 if any path, 1 if none
+  -Z, --null-out   Separate output with NUL instead of newline
+  -h, --help       Show this help message
+`
+
+const usageExtension = `Usage: path extension [-h] [-q] [-Z] [PATH ...]
+
+  Print the extension of each PATH (including leading dot).
+  Exits 0 if at least one path has an extension, 1 otherwise.
+
+Options:
+  -q, --quiet      Suppress output
+  -Z, --null-out   Separate output with NUL instead of newline
+  -h, --help       Show this help message
+`
+
+const usageChangeExtension = `Usage: path change-extension [-h] [-Z] EXT [PATH ...]
+
+  Replace or remove the extension of each PATH.
+
+Options:
+  -Z, --null-out   Separate output with NUL instead of newline
+  -h, --help       Show this help message
+`
+
+const usageNormalize = `Usage: path normalize [-h] [-q] [-Z] [PATH ...]
+
+  Normalize each PATH (resolve . and .. components, collapse slashes).
+  Paths starting with '-' are prefixed with './' to prevent flag confusion.
+
+Options:
+  -q, --quiet      Suppress output
+  -Z, --null-out   Separate output with NUL instead of newline
+  -h, --help       Show this help message
+`
+
+const usageResolve = `Usage: path resolve [-h] [-q] [-Z] [PATH ...]
+
+  Resolve each PATH to an absolute path, resolving symlinks.
+  Non-existent paths are made absolute relative to CWD.
+
+Options:
+  -q, --quiet      Suppress output
+  -Z, --null-out   Separate output with NUL instead of newline
+  -h, --help       Show this help message
+`
+
+const usageSort = `Usage: path sort [-h] [-r] [-u] [--key=KEY] [-Z] [PATH ...]
+
+  Sort paths.
+
+Options:
+  -r, --reverse    Reverse sort order
+  -u, --unique     Remove duplicates (by sort key)
+  --key=KEY        Sort key: path (default), basename, dirname
+  -Z, --null-out   Separate output with NUL instead of newline
+  -h, --help       Show this help message
+`
+
+const usageFilter = `Usage: path filter [-h] [-v] [-q] [-f|-d|-l] [-t TYPE] [-r|-w|-x] [-p PERM] [-Z] [PATH ...]
+
+  Filter paths by existence and optional criteria.
+
+Options:
+  -v, --invert      Print paths that do NOT match
+  -f                Match regular files
+  -d                Match directories
+  -l                Match symlinks
+  -t, --type TYPE   Match type: file,dir,link,block,char,fifo,socket
+  -r                Match readable paths
+  -w                Match writable paths
+  -x                Match executable paths
+  -p, --perm PERM   Match permission: read,write,exec,suid,sgid
+  -q, --quiet       Suppress output; exit 0 if any match
+  -Z, --null-out    Separate output with NUL instead of newline
+  -h, --help        Show this help message
+`
+
+const usageIs = `Usage: path is [-h] [-v] [-f|-d|-l] [-t TYPE] [-r|-w|-x] [-p PERM] [PATH ...]
+
+  Test if paths match criteria. Sets exit status only; no output.
+
+Options:
+  -v, --invert    Test that paths do NOT match
+  -f              Test for regular files
+  -d              Test for directories
+  -l              Test for symlinks
+  -t, --type      Match type: file,dir,link,...
+  -r/-w/-x        Test readable/writable/executable
+  -p, --perm      Match permission: read,write,exec,suid,sgid
+  -h, --help      Show this help message
+`
+
+const usageMtime = `Usage: path mtime [-h] [--relative] [-R] [PATH ...]
+
+  Print modification time of each PATH as Unix timestamp.
+
+Options:
+  --relative   Print seconds since modification (age)
+  -R, --reverse  Sort oldest first
+  -h, --help     Show this help message
+`
+
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
 		fmt.Fprintln(stderr, "path: missing subcommand")
@@ -22,6 +158,9 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 	cmd, rest := args[0], args[1:]
 	switch cmd {
+	case "-h", "--help":
+		fmt.Fprint(stdout, usage)
+		return 0
 	case "basename":
 		return runBasename(rest, stdin, stdout, stderr)
 	case "dirname":
@@ -97,16 +236,7 @@ func runBasename(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path basename [-h] [-E] [-q] [-Z] [PATH ...]
-
-  Print the non-directory part of each PATH.
-
-Options:
-  -E, --strip-extension   Strip file extension from result
-  -q, --quiet             Suppress output; exit 0 if any path, 1 if none
-  -Z, --null-out          Separate output with NUL instead of newline
-  -h, --help              Show this help message
-`)
+		fmt.Fprint(stdout, usageBasename)
 		return 0
 	}
 	paths := inputPaths(fs.Args(), stdin)
@@ -144,15 +274,7 @@ func runDirname(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path dirname [-h] [-q] [-Z] [PATH ...]
-
-  Print the directory part of each PATH.
-
-Options:
-  -q, --quiet      Suppress output; exit 0 if any path, 1 if none
-  -Z, --null-out   Separate output with NUL instead of newline
-  -h, --help       Show this help message
-`)
+		fmt.Fprint(stdout, usageDirname)
 		return 0
 	}
 	paths := inputPaths(fs.Args(), stdin)
@@ -185,16 +307,7 @@ func runExtension(args []string, stdin io.Reader, stdout, stderr io.Writer) int 
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path extension [-h] [-q] [-Z] [PATH ...]
-
-  Print the extension of each PATH (including leading dot).
-  Exits 0 if at least one path has an extension, 1 otherwise.
-
-Options:
-  -q, --quiet      Suppress output
-  -Z, --null-out   Separate output with NUL instead of newline
-  -h, --help       Show this help message
-`)
+		fmt.Fprint(stdout, usageExtension)
 		return 0
 	}
 	paths := inputPaths(fs.Args(), stdin)
@@ -229,14 +342,7 @@ func runChangeExtension(args []string, stdin io.Reader, stdout, stderr io.Writer
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path change-extension [-h] [-Z] EXT [PATH ...]
-
-  Replace or remove the extension of each PATH.
-
-Options:
-  -Z, --null-out   Separate output with NUL instead of newline
-  -h, --help       Show this help message
-`)
+		fmt.Fprint(stdout, usageChangeExtension)
 		return 0
 	}
 	rest := fs.Args()
@@ -289,16 +395,7 @@ func runNormalize(args []string, stdin io.Reader, stdout, stderr io.Writer) int 
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path normalize [-h] [-q] [-Z] [PATH ...]
-
-  Normalize each PATH (resolve . and .. components, collapse slashes).
-  Paths starting with '-' are prefixed with './' to prevent flag confusion.
-
-Options:
-  -q, --quiet      Suppress output
-  -Z, --null-out   Separate output with NUL instead of newline
-  -h, --help       Show this help message
-`)
+		fmt.Fprint(stdout, usageNormalize)
 		return 0
 	}
 	paths := inputPaths(fs.Args(), stdin)
@@ -333,16 +430,7 @@ func runResolve(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path resolve [-h] [-q] [-Z] [PATH ...]
-
-  Resolve each PATH to an absolute path, resolving symlinks.
-  Non-existent paths are made absolute relative to CWD.
-
-Options:
-  -q, --quiet      Suppress output
-  -Z, --null-out   Separate output with NUL instead of newline
-  -h, --help       Show this help message
-`)
+		fmt.Fprint(stdout, usageResolve)
 		return 0
 	}
 	paths := inputPaths(fs.Args(), stdin)
@@ -386,17 +474,7 @@ func runSortCmd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path sort [-h] [-r] [-u] [--key=KEY] [-Z] [PATH ...]
-
-  Sort paths.
-
-Options:
-  -r, --reverse    Reverse sort order
-  -u, --unique     Remove duplicates (by sort key)
-  --key=KEY        Sort key: path (default), basename, dirname
-  -Z, --null-out   Separate output with NUL instead of newline
-  -h, --help       Show this help message
-`)
+		fmt.Fprint(stdout, usageSort)
 		return 0
 	}
 	if !validSortKeys[*key] {
@@ -565,24 +643,7 @@ func runFilter(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path filter [-h] [-v] [-q] [-f|-d|-l] [-t TYPE] [-r|-w|-x] [-p PERM] [-Z] [PATH ...]
-
-  Filter paths by existence and optional criteria.
-
-Options:
-  -v, --invert      Print paths that do NOT match
-  -f                Match regular files
-  -d                Match directories
-  -l                Match symlinks
-  -t, --type TYPE   Match type: file,dir,link,block,char,fifo,socket
-  -r                Match readable paths
-  -w                Match writable paths
-  -x                Match executable paths
-  -p, --perm PERM   Match permission: read,write,exec,suid,sgid
-  -q, --quiet       Suppress output; exit 0 if any match
-  -Z, --null-out    Separate output with NUL instead of newline
-  -h, --help        Show this help message
-`)
+		fmt.Fprint(stdout, usageFilter)
 		return 0
 	}
 
@@ -683,20 +744,7 @@ func runIs(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path is [-h] [-v] [-f|-d|-l] [-t TYPE] [-r|-w|-x] [-p PERM] [PATH ...]
-
-  Test if paths match criteria. Sets exit status only; no output.
-
-Options:
-  -v, --invert    Test that paths do NOT match
-  -f              Test for regular files
-  -d              Test for directories
-  -l              Test for symlinks
-  -t, --type      Match type: file,dir,link,...
-  -r/-w/-x        Test readable/writable/executable
-  -p, --perm      Match permission: read,write,exec,suid,sgid
-  -h, --help      Show this help message
-`)
+		fmt.Fprint(stdout, usageIs)
 		return 0
 	}
 
@@ -758,15 +806,7 @@ func runMtime(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: path mtime [-h] [--relative] [-R] [PATH ...]
-
-  Print modification time of each PATH as Unix timestamp.
-
-Options:
-  --relative   Print seconds since modification (age)
-  -R, --reverse  Sort oldest first
-  -h, --help     Show this help message
-`)
+		fmt.Fprint(stdout, usageMtime)
 		return 0
 	}
 	paths := inputPaths(fs.Args(), stdin)

@@ -295,9 +295,9 @@ func parseOneSpec(s string) (*flagSpec, error) {
 	}
 
 	fs := &flagSpec{kind: kind}
-	if idx := strings.Index(s, "/"); idx >= 0 {
-		fs.short = s[:idx]
-		fs.long = s[idx+1:]
+	if short, long, found := strings.Cut(s, "/"); found {
+		fs.short = short
+		fs.long = long
 		if fs.long == "" {
 			return nil, fmt.Errorf("invalid option spec %q", orig)
 		}

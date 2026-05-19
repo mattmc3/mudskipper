@@ -12,6 +12,18 @@ func runCmd(args ...string) (int, string, string) {
 	return code, out.String(), err.String()
 }
 
+func TestPath_help(t *testing.T) {
+	for _, flag := range []string{"-h", "--help"} {
+		code, out, _ := runCmd(flag)
+		if code != 0 {
+			t.Errorf("%s: exit want 0, got %d", flag, code)
+		}
+		if !strings.Contains(out, "Usage:") {
+			t.Errorf("%s: stdout want Usage, got %q", flag, out)
+		}
+	}
+}
+
 func TestPath_no_subcommand(t *testing.T) {
 	code, _, stderr := runCmd()
 	if code != 1 {

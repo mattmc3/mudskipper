@@ -9,28 +9,50 @@ import (
 	"rsc.io/getopt"
 )
 
+const joinSharedOptions = `  -n, --no-empty    Exclude empty strings
+  -q, --quiet       Suppress output; exit 0 if any strings joined, 1 if none
+  -h, --help        Show this help message
+`
+
+const usageJoin = `Usage: string join [-h] [-q] [-n] [--] SEP [STRING ...]
+
+  Join strings with SEP separator.
+
+Options:
+` + joinSharedOptions
+
+const usageJoin0 = `Usage: string join0 [-h] [-q] [-n] [--] [STRING ...]
+
+  Join strings with NUL (\0) separator and a trailing NUL.
+
+Options:
+` + joinSharedOptions
+
 func runJoin(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	fs := getopt.NewFlagSet("join", flag.ContinueOnError)
+	return runJoinImpl("join", usageJoin, false, args, stdin, stdout, stderr)
+}
+
+func runJoin0(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	return runJoinImpl("join0", usageJoin0, true, args, stdin, stdout, stderr)
+}
+
+func runJoinImpl(name, usage string, nul0 bool, args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	fs := getopt.NewFlagSet(name, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	help := fs.Bool("help", false, "")
 	quiet := fs.Bool("quiet", false, "")
 	noEmpty := fs.Bool("no-empty", false, "")
 	fs.Aliases("h", "help", "q", "quiet", "n", "no-empty")
 	if err := fs.Parse(args); err != nil {
-		fmt.Fprintf(stderr, "error: join: %v\n", err)
+		fmt.Fprintf(stderr, "error: %s: %v\n", name, err)
 		return 1
 	}
 	if *help {
-		fmt.Fprint(stdout, `Usage: string join [-h] [-q] [-n] [--] SEP [STRING ...]
-
-  Join strings with SEP separator.
-
-Options:
-  -n, --no-empty    Exclude empty strings
-  -q, --quiet       Suppress output; exit 0 if any strings joined, 1 if none
-  -h, --help        Show this help message
-`)
+		fmt.Fprint(stdout, usage)
 		return 0
+	}
+	if nul0 {
+		return joinCore("\x00", true, fs.Args(), stdin, stdout, *quiet, *noEmpty)
 	}
 	rest := fs.Args()
 	if len(rest) == 0 {
@@ -38,32 +60,6 @@ Options:
 		return 1
 	}
 	return joinCore(rest[0], false, rest[1:], stdin, stdout, *quiet, *noEmpty)
-}
-
-func runJoin0(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	fs := getopt.NewFlagSet("join0", flag.ContinueOnError)
-	fs.SetOutput(io.Discard)
-	help := fs.Bool("help", false, "")
-	quiet := fs.Bool("quiet", false, "")
-	noEmpty := fs.Bool("no-empty", false, "")
-	fs.Aliases("h", "help", "q", "quiet", "n", "no-empty")
-	if err := fs.Parse(args); err != nil {
-		fmt.Fprintf(stderr, "error: join0: %v\n", err)
-		return 1
-	}
-	if *help {
-		fmt.Fprint(stdout, `Usage: string join0 [-h] [-q] [-n] [--] [STRING ...]
-
-  Join strings with NUL (\0) separator and a trailing NUL.
-
-Options:
-  -n, --no-empty    Exclude empty strings
-  -q, --quiet       Suppress output; exit 0 if any strings joined, 1 if none
-  -h, --help        Show this help message
-`)
-		return 0
-	}
-	return joinCore("\x00", true, fs.Args(), stdin, stdout, *quiet, *noEmpty)
 }
 
 func joinCore(sep string, appendNul bool, inputs []string, stdin io.Reader, stdout io.Writer, quiet, noEmpty bool) int {

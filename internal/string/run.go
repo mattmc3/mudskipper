@@ -71,8 +71,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 }
 
-func writeHelp(w io.Writer) {
-	fmt.Fprint(w, `Usage: string <command> [options] [STRING ...]
+const usage = `Usage: string <command> [options] [STRING ...]
 
 Commands:
   collect    Collect strings into one output
@@ -94,5 +93,8 @@ Commands:
   upper      Convert strings to uppercase
 
 Use 'string <command> --help' for more information about a specific command.
-`)
+`
+
+func writeHelp(w io.Writer) {
+	fmt.Fprint(w, usage)
 }

@@ -19,6 +19,18 @@ func assertOut(t *testing.T, want, got string) {
 	}
 }
 
+func TestMath_help(t *testing.T) {
+	for _, flag := range []string{"-h", "--help"} {
+		code, out, _ := runMath(flag)
+		if code != 0 {
+			t.Errorf("%s: exit want 0, got %d", flag, code)
+		}
+		if !strings.Contains(out, "Usage:") {
+			t.Errorf("%s: stdout want Usage, got %q", flag, out)
+		}
+	}
+}
+
 // math.fish L6: math 3 / 2
 func TestMath_float_division(t *testing.T) {
 	_, out, _ := runMath("3 / 2")
