@@ -45,6 +45,7 @@ type parseOptions struct {
 	noLocal       bool
 	ignoreUnknown bool
 	strictLong    bool
+	exclusive     [][]string
 	minArgs       int
 	maxArgs       int // -1 = unlimited
 }
@@ -95,6 +96,17 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			i++
 		case arg == "--strict-longopts" || arg == "-S":
 			opts.strictLong = true
+			i++
+		case arg == "--exclusive" || arg == "-x":
+			i++
+			if i >= len(args) {
+				fmt.Fprintln(stderr, "argparse: --exclusive requires a value")
+				return 1
+			}
+			opts.exclusive = append(opts.exclusive, strings.Split(args[i], ","))
+			i++
+		case strings.HasPrefix(arg, "--exclusive="):
+			opts.exclusive = append(opts.exclusive, strings.Split(arg[12:], ","))
 			i++
 		case strings.HasPrefix(arg, "--min-args="):
 			n, err := strconv.Atoi(arg[11:])
@@ -166,6 +178,15 @@ doneOpts:
 		return 1
 	}
 
+	for _, group := range opts.exclusive {
+		for _, name := range group {
+			if findSpec(specs, name, name) == nil {
+				fmt.Fprintf(stderr, "%s: -x: unknown flag %q\n", opts.name, name)
+				return 1
+			}
+		}
+	}
+
 	result, ok := parseArgs(args[sepIdx+1:], specs, opts, stderr)
 	if !ok {
 		return 1
@@ -179,6 +200,20 @@ doneOpts:
 	if opts.maxArgs >= 0 && len(result.remaining) > opts.maxArgs {
 		fmt.Fprintf(stderr, "%s: expected at most %d arguments, got %d\n", opts.name, opts.maxArgs, len(result.remaining))
 		return 1
+	}
+
+	for _, group := range opts.exclusive {
+		var seen []string
+		for _, name := range group {
+			fs := findSpec(specs, name, name)
+			if _, ok := result.flags[fs.varName]; ok {
+				seen = append(seen, name)
+			}
+		}
+		if len(seen) > 1 {
+			fmt.Fprintf(stderr, "%s: exclusive flags %s cannot be used together\n", opts.name, strings.Join(seen, ", "))
+			return 1
+		}
 	}
 
 	if err := emitShellCode(result, specs, opts.shell, opts.noLocal, stdout); err != nil {
@@ -658,4 +693,6 @@ func elvishQuote(s string) string {
 func isAlphaNum(c byte) bool {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
 }
+
+
 
