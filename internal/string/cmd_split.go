@@ -55,14 +55,25 @@ func parseSplitFlags(name string, args []string) (*splitOpts, *getopt.FlagSet, e
 }
 
 func runSplit(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	opts, fs, err := parseSplitFlags("split", args)
+	return runSplitImpl("split", usageSplit, false, args, stdin, stdout, stderr)
+}
+
+func runSplit0(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	return runSplitImpl("split0", usageSplit0, true, args, stdin, stdout, stderr)
+}
+
+func runSplitImpl(name, usage string, nul0 bool, args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	opts, fs, err := parseSplitFlags(name, args)
 	if err != nil {
-		fmt.Fprintf(stderr, "error: split: %v\n", err)
+		fmt.Fprintf(stderr, "error: %s: %v\n", name, err)
 		return 1
 	}
 	if opts.help {
-		fmt.Fprint(stdout, usageSplit)
+		fmt.Fprint(stdout, usage)
 		return 0
+	}
+	if nul0 {
+		return splitCore("\x00", true, fs.Args(), stdin, stdout, stderr, opts)
 	}
 	rest := fs.Args()
 	if len(rest) == 0 {
@@ -70,19 +81,6 @@ func runSplit(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return splitCore(rest[0], false, rest[1:], stdin, stdout, stderr, opts)
-}
-
-func runSplit0(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	opts, fs, err := parseSplitFlags("split0", args)
-	if err != nil {
-		fmt.Fprintf(stderr, "error: split0: %v\n", err)
-		return 1
-	}
-	if opts.help {
-		fmt.Fprint(stdout, usageSplit0)
-		return 0
-	}
-	return splitCore("\x00", true, fs.Args(), stdin, stdout, stderr, opts)
 }
 
 func splitCore(sep string, nul0Mode bool, inputs []string, stdin io.Reader, stdout, stderr io.Writer, opts *splitOpts) int {

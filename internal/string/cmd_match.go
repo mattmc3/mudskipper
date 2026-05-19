@@ -156,7 +156,7 @@ func runMatch(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 func writeMatchAt(w io.Writer, s string, loc []int, groupsOnly, useIndex, entire, quiet bool) bool {
 	if groupsOnly {
-		any := false
+		found := false
 		for g := 1; g < len(loc)/2; g++ {
 			start, end := loc[g*2], loc[g*2+1]
 			if start < 0 {
@@ -169,9 +169,9 @@ func writeMatchAt(w io.Writer, s string, loc []int, groupsOnly, useIndex, entire
 					fmt.Fprintln(w, s[start:end])
 				}
 			}
-			any = true
+			found = true
 		}
-		return any
+		return found
 	}
 
 	matchStart, matchEnd := loc[0], loc[1]

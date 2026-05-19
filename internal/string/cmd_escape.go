@@ -57,12 +57,12 @@ func runEscape(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	any := false
+	found := false
 	for _, s := range inputStrings(fs.Args(), stdin) {
 		fmt.Fprintln(stdout, escapeString(s, *style, *noQuoted))
-		any = true
+		found = true
 	}
-	if any {
+	if found {
 		return 0
 	}
 	return 1
@@ -87,7 +87,7 @@ func runUnescape(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	any := false
+	found := false
 	for _, s := range inputStrings(fs.Args(), stdin) {
 		result, err := unescapeString(s, *style)
 		if err != nil {
@@ -95,9 +95,9 @@ func runUnescape(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			return 1
 		}
 		fmt.Fprintln(stdout, result)
-		any = true
+		found = true
 	}
-	if any {
+	if found {
 		return 0
 	}
 	return 1

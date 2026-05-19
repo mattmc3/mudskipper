@@ -14,7 +14,7 @@ const usageLength = `Usage: string length [-h] [-q] [-V] [STRING ...]
 
 Options:
   -V, --visible    Count visible width (strip ANSI escape sequences)
-  -q, --quiet      Suppress output; exit 0 if any non-empty, 1 if all empty
+  -q, --quiet      Suppress output; exit 0 if found non-empty, 1 if all empty
   -h, --help       Show this help message
 `
 
@@ -35,13 +35,13 @@ func runLength(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 0
 	}
 
-	any := false
+	found := false
 	next := newStringIter(fs.Args(), stdin)
 	for s, ok := next(); ok; s, ok = next() {
 		if *visible {
 			for _, w := range visualWidthOfLines(s) {
 				if w > 0 {
-					any = true
+					found = true
 				}
 				if !*quiet {
 					fmt.Fprintln(stdout, w)
@@ -50,17 +50,17 @@ func runLength(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		} else {
 			n := len(s)
 			if n > 0 {
-				any = true
+				found = true
 			}
 			if !*quiet {
 				fmt.Fprintln(stdout, n)
 			}
 		}
-		if *quiet && any {
+		if *quiet && found {
 			return 0
 		}
 	}
-	if any {
+	if found {
 		return 0
 	}
 	return 1

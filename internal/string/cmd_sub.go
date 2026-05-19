@@ -18,7 +18,7 @@ Options:
   -s, --start INT      Start position (1-based; negative counts from end)
   -e, --end INT        End position, inclusive (1-based; negative counts from end)
   -l, --length INT     Length of substring (overrides --end)
-  -q, --quiet          Suppress output; exit 0 if any result non-empty, 1 if all empty
+  -q, --quiet          Suppress output; exit 0 if found result non-empty, 1 if all empty
   -h, --help           Show this help message
 `
 
@@ -88,22 +88,22 @@ func runSub(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	any := false
+	found := false
 	next := newStringIter(fs.Args(), stdin)
 	for s, ok := next(); ok; s, ok = next() {
 		result := substring(s, start, end, length)
 		if len(result) > 0 {
-			any = true
+			found = true
 		}
 		if !*quiet {
 			fmt.Fprintln(stdout, result)
 		}
-		if *quiet && any {
+		if *quiet && found {
 			return 0
 		}
 	}
 
-	if any {
+	if found {
 		return 0
 	}
 	return 1
