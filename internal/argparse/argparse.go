@@ -7,6 +7,30 @@ import (
 	"strings"
 )
 
+const usage = `Usage: argparse [-h] [-n NAME] [--shell SHELL] [-s] [-i] [-S] [-x FLAGS] [-N MIN] [-X MAX] SPEC... -- [ARG...]
+
+Parse command-line arguments and emit shell variable assignments.
+
+Options:
+  -h, --help               Show this help message
+  -n, --name NAME          Command name used in error messages (default: argparse)
+      --shell SHELL        Output shell syntax: fish bash zsh sh elvish nushell osh ysh (default: fish)
+  -s, --stop-nonopt        Stop parsing flags at first non-option argument
+      --no-local           Emit global assignments instead of local/set -l
+  -i, --ignore-unknown     Pass unknown flags through to remaining args
+  -S, --strict-longopts    Require exact long flag matches (no prefix abbreviation)
+  -x, --exclusive FLAGS    Comma-separated group of mutually exclusive flags; may repeat
+  -N, --min-args N         Require at least N remaining arguments
+  -X, --max-args N         Allow at most N remaining arguments
+
+Spec format:
+  short/long               Boolean flag (-s / --long)
+  short/long=              Required value flag
+  short/long=?             Optional value flag
+  short/long=+             Required value flag, may repeat
+  short/long=*             Optional value flag, may repeat
+`
+
 type flagKind int
 
 const (
@@ -51,24 +75,47 @@ type parseOptions struct {
 }
 
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	for _, a := range args {
+		if a == "--" {
+			break
+		}
+		if a == "-h" || a == "--help" {
+			fmt.Fprint(stdout, usage)
+			return 0
+		}
+	}
+
 	opts := parseOptions{
 		name:    "argparse",
 		shell:   "fish",
 		maxArgs: -1,
 	}
 
+	// Find -- separator first so we can scan the full pre-separator region.
+	sepIdx := -1
+	for j, a := range args {
+		if a == "--" {
+			sepIdx = j
+			break
+		}
+	}
+	if sepIdx < 0 {
+		fmt.Fprintf(stderr, "%s: Missing -- separator\n", opts.name)
+		return 1
+	}
+
+	// Walk args[0:sepIdx], consuming recognized options and collecting specs.
+	var specArgs []string
 	i := 0
-	for i < len(args) {
+	for i < sepIdx {
 		arg := args[i]
 		switch {
-		case arg == "--":
-			goto doneOpts
 		case strings.HasPrefix(arg, "--shell="):
 			opts.shell = arg[8:]
 			i++
 		case arg == "--shell":
 			i++
-			if i >= len(args) {
+			if i >= sepIdx {
 				fmt.Fprintln(stderr, "argparse: --shell requires a value")
 				return 1
 			}
@@ -79,7 +126,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			i++
 		case arg == "--name" || arg == "-n":
 			i++
-			if i >= len(args) {
+			if i >= sepIdx {
 				fmt.Fprintln(stderr, "argparse: --name requires a value")
 				return 1
 			}
@@ -99,7 +146,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			i++
 		case arg == "--exclusive" || arg == "-x":
 			i++
-			if i >= len(args) {
+			if i >= sepIdx {
 				fmt.Fprintln(stderr, "argparse: --exclusive requires a value")
 				return 1
 			}
@@ -118,7 +165,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			i++
 		case arg == "--min-args" || arg == "-N":
 			i++
-			if i >= len(args) {
+			if i >= sepIdx {
 				fmt.Fprintln(stderr, "argparse: --min-args requires a value")
 				return 1
 			}
@@ -139,7 +186,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			i++
 		case arg == "--max-args" || arg == "-X":
 			i++
-			if i >= len(args) {
+			if i >= sepIdx {
 				fmt.Fprintln(stderr, "argparse: --max-args requires a value")
 				return 1
 			}
@@ -151,28 +198,15 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			opts.maxArgs = n
 			i++
 		case strings.HasPrefix(arg, "-"):
-			// Unknown argparse flag — stop and treat as start of specs
-			goto doneOpts
+			fmt.Fprintf(stderr, "argparse: unknown option %s\n", arg)
+			return 1
 		default:
-			goto doneOpts
+			specArgs = append(specArgs, arg)
+			i++
 		}
 	}
-doneOpts:
 
-	// Find -- separator
-	sepIdx := -1
-	for j := i; j < len(args); j++ {
-		if args[j] == "--" {
-			sepIdx = j
-			break
-		}
-	}
-	if sepIdx < 0 {
-		fmt.Fprintf(stderr, "%s: Missing -- separator\n", opts.name)
-		return 1
-	}
-
-	specs, err := parseSpecs(args[i:sepIdx])
+	specs, err := parseSpecs(specArgs)
 	if err != nil {
 		fmt.Fprintf(stderr, "%s: %v\n", opts.name, err)
 		return 1
@@ -207,11 +241,11 @@ doneOpts:
 		for _, name := range group {
 			fs := findSpec(specs, name, name)
 			if _, ok := result.flags[fs.varName]; ok {
-				seen = append(seen, name)
+				seen = append(seen, flagLabel(fs))
 			}
 		}
 		if len(seen) > 1 {
-			fmt.Fprintf(stderr, "%s: exclusive flags %s cannot be used together\n", opts.name, strings.Join(seen, ", "))
+			fmt.Fprintf(stderr, "%s: %s cannot be used together\n", opts.name, strings.Join(seen, " and "))
 			return 1
 		}
 	}
@@ -692,6 +726,16 @@ func elvishQuote(s string) string {
 
 func isAlphaNum(c byte) bool {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+}
+
+func flagLabel(fs *flagSpec) string {
+	if fs.short != "" && fs.long != "" {
+		return "-" + fs.short + "/--" + fs.long
+	}
+	if fs.short != "" {
+		return "-" + fs.short
+	}
+	return "--" + fs.long
 }
 
 
