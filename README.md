@@ -1,6 +1,10 @@
-# fish-utils
+# mudskipper
 
-Fish shell utilities ported to Go for use in bash, zsh, sh, and other shells.
+<img src="https://github.com/user-attachments/assets/12b824a6-8d27-460c-98b5-30effa58ea20" width="150" align="right" />
+
+> fish shell commands out of water
+
+Are you a [Fish](https://fishshell.com) user that sometimes needs to do work in bash or zsh and miss having ready access to your favorite Fish commands? Not a grep/sed/awk expert and wish you could simply pipe something to the Fish `string` utility and not have to worry about which regex syntax you need or which grep flags to use? Mudskipper is a humble port Fish tooling so you can use it in any shell, for those times when you're a Fish out of water.
 
 ## Commands
 
